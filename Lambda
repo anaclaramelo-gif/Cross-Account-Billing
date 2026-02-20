@@ -1,0 +1,136 @@
+import json
+import boto3
+import logging
+import urllib3
+import os
+from datetime import datetime
+
+# Configuração de Logs
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+http = urllib3.PoolManager()
+
+# Variáveis de Ambiente e Clientes
+DDB_TABLE = os.environ.get("DDB_TABLE", "ClientsOnboarding")
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(DDB_TABLE)
+sts_client = boto3.client('sts')
+
+def get_account_alias(account_id, role_name):
+    """
+    Assume a role na conta do cliente para buscar o Alias do IAM (nome amigável).
+    """
+    role_arn = f"arn:aws:iam::{account_id}:role/{role_name}"
+    try:
+        logger.info(f"Tentando acessar a conta {account_id} via role {role_name}...")
+        
+        # Assume a role que o cliente acabou de criar no CloudFormation
+        assumed_role = sts_client.assume_role(
+            RoleArn=role_arn,
+            RoleSessionName="GetAccountNameSession"
+        )
+        
+        # Usa as credenciais temporárias para acessar o IAM do cliente
+        creds = assumed_role['Credentials']
+        iam_client = boto3.client(
+            'iam',
+            aws_access_key_id=creds['AccessKeyId'],
+            aws_secret_access_key=creds['SecretAccessKey'],
+            aws_session_token=creds['SessionToken']
+        )
+        
+        # Busca o Alias (nome amigável) da conta
+        response = iam_client.list_account_aliases()
+        aliases = response.get('AccountAliases', [])
+        
+        if aliases:
+            logger.info(f"Alias encontrado: {aliases[0]}")
+            return aliases[0]
+        
+        logger.info("Nenhum alias encontrado, usando o Account ID como nome.")
+        return account_id
+
+    except Exception as e:
+        logger.warning(f"Erro ao acessar conta do cliente para buscar Alias: {e}")
+        return account_id # Fallback para o ID caso ocorra erro de permissão
+
+def lambda_handler(event, context):
+    logger.info(f"Evento recebido: {json.dumps(event)}")
+
+    # O CloudFormation envia esses campos em um Custom Resource
+    request_type = event.get("RequestType")
+    props = event.get("ResourceProperties", {})
+
+    client_account_id = props.get("ClientAccountId")
+    role_name = props.get("RoleName", "RealCloudCrossAccount")
+    stack_name = props.get("StackName", "")
+
+    # O status padrão é SUCCESS, a menos que algo crítico falhe
+    status = "SUCCESS"
+
+    try:
+        if request_type == "Delete":
+            if client_account_id:
+                table.delete_item(Key={"account_id": client_account_id})
+                logger.info(f"Registro removido: {client_account_id}")
+
+        elif request_type in ["Create", "Update"]:
+            # BUSCA AUTOMÁTICA: Pega o nome real (Alias) via Cross-Account
+            client_name = get_account_alias(client_account_id, role_name)
+            
+            # Gera timestamp no formato ISO (correção do erro boto3.utils)
+            timestamp = datetime.now().isoformat()
+            
+            table.put_item(
+                Item={
+                    "account_id": client_account_id,
+                    "client_name": client_name, 
+                    "role_name": role_name,
+                    "stack_name": stack_name,
+                    "cross_account_link": f"https://signin.aws.amazon.com/switchrole?roleName={role_name}&account={client_account_id}",
+                    "updated_at": timestamp
+                }
+            )
+            logger.info(f"Registro salvo com sucesso: {client_name} ({client_account_id})")
+
+    except Exception as e:
+        logger.error(f"Erro fatal no processamento: {e}")
+        # Só marcamos como FAILED se o erro for impeditivo
+        status = "FAILED"
+
+    finally:
+        # Crucial para o CloudFormation não ficar travado em "CREATE_IN_PROGRESS"
+        send_response(event, context, status)
+
+def send_response(event, context, response_status):
+    """
+    Envia o sinal de sucesso ou falha para o CloudFormation via S3 Signed URL.
+    """
+    response_url = event["ResponseURL"]
+    
+    response_body = json.dumps({
+        "Status": response_status,
+        "Reason": f"Veja os logs em: {context.log_stream_name}",
+        "PhysicalResourceId": event.get("PhysicalResourceId", context.log_stream_name),
+        "StackId": event["StackId"],
+        "RequestId": event["RequestId"],
+        "LogicalResourceId": event["LogicalResourceId"],
+        "Data": {}
+    })
+    
+    headers = {
+        "Content-Type": "",
+        "Content-Length": str(len(response_body))
+    }
+    
+    try:
+        # Envia a resposta PUT para a URL assinada fornecida pelo CloudFormation
+        response = http.request(
+            "PUT", 
+            response_url, 
+            body=response_body.encode('utf-8'), 
+            headers=headers
+        )
+        logger.info(f"Sinal de resposta enviado ao CloudFormation. Status Code: {response.status}")
+    except Exception as e:
+        logger.error(f"Falha ao enviar sinal de resposta ao CloudFormation: {e}")
