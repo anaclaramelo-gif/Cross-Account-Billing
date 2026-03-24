@@ -47,7 +47,7 @@
   
    - Free Tier: Monitora o uso da camada gratuita e configurar alertas de limite.
    
-   -Budgets: Permite ver os orçamentos criados e o status de cada um em relação ao gasto real.
+   - Budgets: Permite ver os orçamentos criados e o status de cada um em relação ao gasto real.
     
   - Consolidated Billing: Em contas Master (Organizations), permite listar as contas vinculadas e ver quem paga o quê.
     
