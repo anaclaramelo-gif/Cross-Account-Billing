@@ -7,6 +7,7 @@
    1.1. Objetivo Cross Account:
    
    O objetivo desta arquitetura é viabilizar um modelo seguro, automatizado e padronizado de acesso cross-account às informações de billing e cost management das contas AWS dos clientes. A solução permite que a RealCloud acesse os dados de forma segura e controlada, utilizando policies de confiança e Roles IAM, fazendo com que não seja mais necessário o compartilhamento de credenciais e garantindo aderência às melhores práticas de segurança e ao least privilege principle
+   
    Adicionalmente, a arquitetura foi concebida para simplificar e escalar o processo de integração de contas, utilizando uma stack do CloudFormation, para assegurar consistência na criação dos recursos necessários, uma função Lambda, para orquestração e uma tabela armazenada no DynamoDB, para registro e rastreabilidade das configurações realizadas. Esse modelo de arquitetura garante governança e auditabilidade, viabilizando análise de custos, geração de insights e otimização financeira de forma eficiente e sustentável.
 
   1.2. Arquitetura:
@@ -18,22 +19,31 @@
   1.3. Componentes da Arquitetura:
   - Conta RealCloud:
       Amazon S3: Hospeda o template CloudFormation (YAML/JSON) que o cliente executa para realizar o provisionamento.
+    
       AWS Lambda:  Atua como um Custom Resource do CloudFormation. Ela processa as notificações de criação/exclusão de stacks, validando a conectividade cross-account e informações necessárias do cliente.
+    
       Amazon DynamoDB: Banco de dados NoSQL que armazena os metadados das contas integradas, incluindo IDs, nomes, roles, external id e link pré-populado do cross account.
+    
   - Conta do Cliente:
       AWS CloudFormation: Executa o template fornecido pela RealCloud.
+    
       RealCloudCrossAccountRole: Cria o acesso de cross-account seguro que permite à RealCloud 'entrar' na conta do cliente de forma restrita, usando apenas as permissões autorizadas.
+    
       Trusted Policy: É a regra de segurança que autoriza exclusivamente a conta da RealCloud a utilizar o acesso criado
-      Billing-Access-RealCloud: Conjunto de permissões focado em leitura de custos e inventário. 
+    
+      Billing-Access-RealCloud: Conjunto de permissões focado em leitura de custos e inventário.
+    
       Custom Resource (Gatilho de Onboarding): Um componente dentro do template que, ao ser criado, envia uma notificação automática para a RealCloud. Isso elimina a necessidade de configuração manual após a execução do       template, validando a conexão e sincronizando os dados de acesso instantaneamente.
 
   1.4. Fluxo de Funcionamento da Arquitetura:
   
-  EXECUÇÃO DO TEMPLATE CLOUDFORMATION:
-    O cliente acessa o link do template CloudFormation que está armazenado no bucket público da  conta Services da RealCloud. Ao executar o template em sua conta, é criada uma role IAM cross-account.
-  NOTIFICAÇÃO CROSS-ACCOUNT: 
-    Ao final da execução do CloudFormation na conta do cliente, um gatilho é disparado para invocar a função Lambda centralizada na conta da RealCloud. Esta função recebe um payload contendo os metadados da nova Stack, incluindo o ID da conta do cliente, o nome da Role criada, o nome da Stack, Link pré-populado de Cross-Account; e External ID (parâmetro opcional de segurança).
-  REGISTRO:
+ - Execução do Template Cloudformation:
+  O cliente acessa o link do template CloudFormation que está armazenado no bucket público da  conta Services da RealCloud. Ao executar o template em sua conta, é criada uma role IAM cross-account.
+   
+ - Notifcação Cross-Account:
+   Ao final da execução do CloudFormation na conta do cliente, um gatilho é disparado para invocar a função Lambda centralizada na conta da RealCloud. Esta função recebe um payload contendo os metadados da nova Stack, incluindo o ID da conta do cliente, o nome da Role criada, o nome da Stack, Link pré-populado de Cross-Account; e External ID (parâmetro opcional de segurança).
+  
+ - Registro:
     A lambda grava essas informações no DynamoDB, permitindo registro de quais contas estão com role, auditoria e rastreabilidade e automação de acessos futuros
 
 ## 2 - Políticas:
@@ -104,6 +114,7 @@ Forneça ao cliente a URL do template CloudFormation hospedado no S3. Este link 
    O cliente será direcionado diretamente para a tela do CloudFormation, com todos os parâmetros necessários já preenchidos. Será necessário apenas clicar em “Create Stack”.
 
   3.2. Após a execução do CloudFormation:
+  
    Assim que a pilha for criada com sucesso na conta do cliente, um processo automático (Custom Resource) enviará os dados para a nossa Conta de Services. A tabela DynamoDB será preenchida automaticamente com as seguintes informações:
 
   - client_name: Nome identificador do cliente (preenchido manualmente pelo usuário durante o setup da Stack).
