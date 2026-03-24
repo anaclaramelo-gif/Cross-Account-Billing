@@ -1,0 +1,154 @@
+Description: >
+  RealCloudCrossAccount - This template creates a cross-account IAM role
+  that grants RealCloud access to billing, cost management, and billing-related
+  configuration features in your AWS account.
+
+Parameters:
+  TrustedAccount:
+    Type: String
+    Default: "835950600873"
+    Description: "RealCloud Account ID for Cross-Account-Role"
+  ExternalId:
+    Type: String
+    Default: ""
+    Description: "External ID for Cross-Account-Role (Optional for console access)"
+  ClientName:
+    Type: String
+    Default: "MyCompany-AWS"
+    Description: "Identification name for this account in the RealCloud dashboard"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Cross-Account Role Configuration. *Do Not Modify*"
+        Parameters:
+          - TrustedAccount
+          - ExternalId
+          - ClientName
+    ParameterLabels:
+      TrustedAccount:
+        default: "AWS Account ID to Grant Permission"
+      ExternalId:
+        default: "External ID"
+      ClientName:
+        default: "Friendly Client Name"
+
+Resources:
+  RealCloudCrossAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: RealCloudCrossAccount
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              AWS: "arn:aws:iam::835950600873:root"
+      Policies:
+        - PolicyName: Billing-Access-RealCloud
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  # Account / Billing
+                  - "account:GetAccountInformation"
+                  - "billing:Get*"
+                  - "billing:List*"
+                  - "billing:GetContractInformation"
+                  - "billing:ListContractInformation"
+                  # Free Tier
+                  - "freetier:GetFreeTierAlertPreference"
+                  - "freetier:GetFreeTierUsage"
+                  # Budgets
+                  - "budgets:ViewBudget"
+                  - "budgets:Describe*"
+                  # Consolidated Billing
+                  - "consolidatedbilling:GetAccountBillingRole"
+                  - "consolidatedbilling:ListLinkedAccounts"
+                  # CUR
+                  - "cur:DescribeReportDefinitions"
+                  - "cur:Get*"
+                  # Invoicing
+                  - "invoicing:Get*"
+                  - "invoicing:List*"
+                  # Pricing
+                  - "pricing:DescribeServices"
+                  # Cost Explorer
+                  - "ce:Get*"
+                  - "ce:Describe*"
+                  - "ce:List*"
+                  # Optimization / Catalog
+                  - "cost-optimization-hub:ListEnrollmentStatuses"
+                  - "cost-optimization-hub:ListRecommendationSummaries"
+                  - "servicecatalog:ListApplications"
+                  - "bcm-recommended-actions:ListRecommendedActions"
+                  # MAP Credits
+                  - "mapcredits:ListQuarterSpend"
+                  - "mapcredits:ListAssociatedPrograms"
+                  - "mapcredits:ListQuarterCredits"
+                  # Pricing Calculator
+                  - "bcm-pricing-calculator:ListWorkloadEstimates"
+                  - "bcm-pricing-calculator:ListBillScenarios"
+                  - "bcm-pricing-calculator:GetWorkloadEstimate"
+                  - "bcm-pricing-calculator:ListWorkloadEstimateUsage"
+                  # Savings Plans
+                  - "savingsplans:Describe*"
+                  - "savingsplans:List*"
+                  # EC2 / RDS Reserved
+                  - "ec2:DescribeReservedInstances"
+                  - "ec2:DescribeVolumesModifications"
+                  - "ec2:DescribeReservedInstancesOfferings"
+                  - "ec2:DescribeCapacityReservations"
+                  - "ec2:DescribeInstances"
+                  - "ec2:DescribeVolumes"
+                  - "ec2:DescribeSnapshots"
+                  - "ec2:DescribeTags"
+                  - "ec2:DescribeAddresses"
+                  - "rds:DescribeReservedDBInstances"
+                  - "rds:DescribeDBInstances"
+                  - "rds:DescribeReservedDBInstancesOfferings"
+                  - "rds:DescribeDBClusters"
+                  # Service Quotas
+                  - "servicequotas:Get*"
+                  - "servicequotas:List*"
+                  - "servicequotas:Describe*"
+                  # Tags
+                  - "tag:GetResources"
+                  - "tag:GetTagKeys"
+                  - "tag:GetTagValues"
+                  # Compute Optimizer
+                  - "compute-optimizer:Get*"
+                  - "compute-optimizer:Describe*"
+                  - "compute-optimizer:Export*"
+                  # Trusted advisor
+                  - "trustedadvisor:Describe*"
+                  - "trustedadvisor:List*"
+                  - "trustedadvisor:View*"
+                  - "support:DescribeSupportLevel"
+                  # Organizations
+                  - "organizations:Describe*"
+                  - "organizations:List*"
+                  # Payments
+                  - "payments:List*"
+                  - "payments:Get*"
+                  # Purchase Orders
+                  - "purchase-orders:ViewPurchaseOrders"
+                  - "purchase-orders:GetPurchaseOrder"
+
+                Resource: "*"
+
+  NotifyCrossAccountOnboarding:
+    Type: Custom::NotifyCrossAccount
+    DependsOn: RealCloudCrossAccountRole
+    Properties:
+      ServiceToken: arn:aws:lambda:us-east-1:835950600873:function:cross-account
+      ClientAccountId: !Ref AWS::AccountId
+      RoleName: RealCloudCrossAccount
+      ExternalId: !Ref ExternalId
+      ClientName: !Ref ClientName
+      StackName: !Ref AWS::StackName
+
