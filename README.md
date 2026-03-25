@@ -251,7 +251,7 @@ Sim.
 
 Apenas sob demanda.
 
- O acesso é realizado via Cross-Account Role sempre que for necessário coletar dados atualizados (ex: relatórios de billing, métricas de consumo ou auditorias de segurança). 
+ O acesso é realizado via Cross-Account Role sempre que for necessário coletar dados atualizados (ex: relatórios de billing, métricas de consumo, etc). 
 
 
 7.1. Existe algum repositório no github mostrando o yaml utilizado ? 
