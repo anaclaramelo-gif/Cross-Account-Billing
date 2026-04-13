@@ -54,55 +54,55 @@
  2.1. Faturamento e Custos (Billing & Cost Management)
 Account/Billing: Visualiza informações da conta, faturas e detalhes de contratos.
 
-Free Tier: Monitora o uso da camada gratuita e configura alertas de limite.
+- Free Tier: Monitora o uso da camada gratuita e configura alertas de limite.
 
-Budgets: Permite ver os orçamentos criados e o status de cada um em relação ao gasto real.
+- Budgets: Permite ver os orçamentos criados e o status de cada um em relação ao gasto real.
 
-Consolidated Billing: Em contas Master (Organizations), permite listar as contas vinculadas e fluxos de faturamento consolidado.
+- Consolidated Billing: Em contas Master (Organizations), permite listar as contas vinculadas e fluxos de faturamento consolidado.
 
-CUR (Cost and Usage Report): Acessa as definições dos relatórios detalhados de custo enviados para o S3.
+- CUR (Cost and Usage Report): Acessa as definições dos relatórios detalhados de custo enviados para o S3.
 
-Invoicing & Payments: Visualiza faturas emitidas, histórico de pagamentos e ordens de compra (Purchase Orders).
+- Invoicing & Payments: Visualiza faturas emitidas, histórico de pagamentos e ordens de compra (Purchase Orders).
 
-Cost Explorer (CE): Permissão central para geração de gráficos, previsões de gastos e análise histórica.
+- Cost Explorer (CE): Permissão central para geração de gráficos, previsões de gastos e análise histórica.
 
 2.2. Otimização e Planejamento (FinOps & Savings)
 Pricing & Calculator: Consulta a tabela de preços oficial e visualiza cenários de estimativas de custos futuros.
 
-Cost Optimization Hub: Acessa o painel centralizado de recomendações de economia da AWS.
+- Cost Optimization Hub: Acessa o painel centralizado de recomendações de economia da AWS.
 
-Savings Plans & RI: Lista e descreve planos de economia e instâncias reservadas (EC2/RDS) ativos ou disponíveis.
+- Savings Plans & RI: Lista e descreve planos de economia e instâncias reservadas (EC2/RDS) ativos ou disponíveis.
 
-MAP Credits: Monitora créditos de migração (Migration Acceleration Program) e o cumprimento de metas de gastos trimestrais.
+- MAP Credits: Monitora créditos de migração (Migration Acceleration Program) e o cumprimento de metas de gastos trimestrais.
 
 2.3. Análise de Infraestrutura e Performance (Compute & Storage)
 EC2 & Auto Scaling: Analisa o detalhamento de instâncias, tipos de máquinas e grupos de escalonamento para identificar subutilização.
 
-Containers (EKS): Visualiza a existência de clusters Kubernetes para correlação de custos de infraestrutura de containers.
+- Containers (EKS): Visualiza a existência de clusters Kubernetes para correlação de custos de infraestrutura de containers.
 
-Serverless (Lambda): Lista funções e configurações para análise de custos de execução e memória provisionada.
+- Serverless (Lambda): Lista funções e configurações para análise de custos de execução e memória provisionada.
 
-Storage & DB (S3, RDS, DynamoDB): Identifica buckets, bancos de dados e tabelas para mapear o crescimento de dados e custos de armazenamento.
+- Storage & DB (S3, RDS, DynamoDB): Identifica buckets, bancos de dados e tabelas para mapear o crescimento de dados e custos de armazenamento.
 
 2.4. Monitoramento e Utilização Reais (CloudWatch & Logs)
 CloudWatch Metrics: Acessa métricas de performance (CPU, Memória, I/O) para validar se as recomendações de Right Sizing são tecnicamente viáveis.
 
-Logs: Descreve grupos de logs para identificar retenções excessivas que geram custos de armazenamento ocultos.
+- Logs: Descreve grupos de logs para identificar retenções excessivas que geram custos de armazenamento ocultos.
 
 2.5. Governança, Segurança e Suporte
 Tagging: Lê etiquetas de recursos, fundamental para a alocação de custos por centro de custo, projeto ou departamento.
 
-Config & Security Hub: Verifica a conformidade de recursos e identifica ativos órfãos ou fora das políticas da empresa.
+- Config & Security Hub: Verifica a conformidade de recursos e identifica ativos órfãos ou fora das políticas da empresa.
 
-Service Quotas: Monitora limites de serviço para prever a necessidade de aumento de cota conforme o crescimento da infraestrutura.
+- Service Quotas: Monitora limites de serviço para prever a necessidade de aumento de cota conforme o crescimento da infraestrutura.
 
-Trusted Advisor: Consolida recomendações de segurança, performance e redução de custos.
+- Trusted Advisor: Consolida recomendações de segurança, performance e redução de custos.
 
-Organizations: Mapeia a estrutura hierárquica de contas da empresa.
+- Organizations: Mapeia a estrutura hierárquica de contas da empresa.
 
-Support: Identifica o plano de suporte contratado para análise de custo-benefício.
+- Support: Identifica o plano de suporte contratado para análise de custo-benefício.
     
-O acesso ocorre exclusivamente via STS AssumeRole, restrito à conta de Services da RealCloud.
+- O acesso ocorre exclusivamente via STS AssumeRole, restrito à conta de Services da RealCloud.
 
 ## 3 - Como usar:
 
