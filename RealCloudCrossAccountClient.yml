@@ -54,90 +54,90 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  # Account / Billing
+                  # ==========================================
+                  # 💰 FATURAMENTO E CUSTOS 
+                  # ==========================================
                   - "account:GetAccountInformation"
                   - "billing:Get*"
                   - "billing:List*"
-                  - "billing:GetContractInformation"
-                  - "billing:ListContractInformation"
-                  # Free Tier
-                  - "freetier:GetFreeTierAlertPreference"
-                  - "freetier:GetFreeTierUsage"
-                  # Budgets
                   - "budgets:ViewBudget"
                   - "budgets:Describe*"
-                  # Consolidated Billing
-                  - "consolidatedbilling:GetAccountBillingRole"
-                  - "consolidatedbilling:ListLinkedAccounts"
-                  # CUR
-                  - "cur:DescribeReportDefinitions"
                   - "cur:Get*"
-                  # Invoicing
-                  - "invoicing:Get*"
-                  - "invoicing:List*"
-                  # Pricing
-                  - "pricing:DescribeServices"
-                  # Cost Explorer
+                  - "cur:Describe*"
                   - "ce:Get*"
                   - "ce:Describe*"
                   - "ce:List*"
-                  # Optimization / Catalog
-                  - "cost-optimization-hub:ListEnrollmentStatuses"
-                  - "cost-optimization-hub:ListRecommendationSummaries"
-                  - "servicecatalog:ListApplications"
-                  - "bcm-recommended-actions:ListRecommendedActions"
-                  # MAP Credits
-                  - "mapcredits:ListQuarterSpend"
-                  - "mapcredits:ListAssociatedPrograms"
-                  - "mapcredits:ListQuarterCredits"
-                  # Pricing Calculator
-                  - "bcm-pricing-calculator:ListWorkloadEstimates"
-                  - "bcm-pricing-calculator:ListBillScenarios"
-                  - "bcm-pricing-calculator:GetWorkloadEstimate"
-                  - "bcm-pricing-calculator:ListWorkloadEstimateUsage"
-                  # Savings Plans
+                  - "invoicing:Get*"
+                  - "invoicing:List*"
+                  - "payments:Get*"
+                  - "payments:List*"
+                  - "purchase-orders:GetPurchaseOrder"
+                  - "purchase-orders:ViewPurchaseOrders"
+                  - "pricing:DescribeServices"
+                  - "freetier:GetFreeTier*"
+                  - "consolidatedbilling:GetAccountBillingRole"
+                  - "consolidatedbilling:ListLinkedAccounts"
+                  - "mapcredits:List*"
+                  - "bcm-pricing-calculator:Get*"
+                  - "bcm-pricing-calculator:List*"
+                  - "bcm-recommended-actions:List*"
                   - "savingsplans:Describe*"
                   - "savingsplans:List*"
-                  # EC2 / RDS Reserved
-                  - "ec2:DescribeReservedInstances"
-                  - "ec2:DescribeVolumesModifications"
-                  - "ec2:DescribeReservedInstancesOfferings"
-                  - "ec2:DescribeCapacityReservations"
-                  - "ec2:DescribeInstances"
-                  - "ec2:DescribeVolumes"
-                  - "ec2:DescribeSnapshots"
-                  - "ec2:DescribeTags"
-                  - "ec2:DescribeAddresses"
-                  - "rds:DescribeReservedDBInstances"
-                  - "rds:DescribeDBInstances"
-                  - "rds:DescribeReservedDBInstancesOfferings"
-                  - "rds:DescribeDBClusters"
-                  # Service Quotas
+
+                  # ==========================================
+                  # ⚙️ COMPUTAÇÃO E CONTAINERS 
+                  # ==========================================
+                  - "ec2:Describe*"
+                  - "autoscaling:Describe*"
+                  - "eks:Describe*"
+                  - "lambda:Get*"
+                  - "lambda:List*"
+
+                  # ==========================================
+                  # 🗄️ STORAGE E DATABASES 
+                  # ==========================================
+                  - "s3:Get*"
+                  - "s3:List*"
+                  - "rds:Describe*"
+                  - "dynamodb:Describe*"
+                  - "dynamodb:List*"
+
+                  # ==========================================
+                  # 📊 MONITORAMENTO E METRICAS
+                  # ==========================================
+                  - "cloudwatch:Get*"
+                  - "cloudwatch:List*"
+                  - "logs:Describe*"
+                  - "logs:Get*"
+
+                  # ==========================================
+                  # 🛡️ GOVERNANÇA E SEGURANÇA 
+                  # ==========================================
+                  - "config:Describe*"
+                  - "config:Get*"
+                  - "securityhub:Get*"
+                  - "securityhub:Describe*"
+                  - "inspector2:List*"
+                  - "inspector2:Get*"
+                  - "tag:Get*"
                   - "servicequotas:Get*"
                   - "servicequotas:List*"
                   - "servicequotas:Describe*"
-                  # Tags
-                  - "tag:GetResources"
-                  - "tag:GetTagKeys"
-                  - "tag:GetTagValues"
-                  # Compute Optimizer
+
+                  # ==========================================
+                  # 🧠 OTIMIZAÇÃO E SUPORTE 
+                  # ==========================================
                   - "compute-optimizer:Get*"
                   - "compute-optimizer:Describe*"
                   - "compute-optimizer:Export*"
-                  # Trusted advisor
+                  - "cost-optimization-hub:List*"
                   - "trustedadvisor:Describe*"
                   - "trustedadvisor:List*"
                   - "trustedadvisor:View*"
-                  - "support:DescribeSupportLevel"
-                  # Organizations
+                  - "support:Describe*"
                   - "organizations:Describe*"
                   - "organizations:List*"
-                  # Payments
-                  - "payments:List*"
-                  - "payments:Get*"
-                  # Purchase Orders
-                  - "purchase-orders:ViewPurchaseOrders"
-                  - "purchase-orders:GetPurchaseOrder"
+                  - "servicecatalog:ListApplications"
 
                 Resource: "*"
 
@@ -151,4 +151,3 @@ Resources:
       ExternalId: !Ref ExternalId
       ClientName: !Ref ClientName
       StackName: !Ref AWS::StackName
-
