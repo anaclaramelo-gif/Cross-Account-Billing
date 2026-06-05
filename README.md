@@ -46,63 +46,106 @@
  - Registro:
     A lambda grava essas informações no DynamoDB, permitindo registro de quais contas estão com role, auditoria e rastreabilidade e automação de acessos futuros
 
-## 2 - Políticas:
 
- Para habilitar a integração cross-account, é criada na conta do cliente a IAM Role RealCloudCrossAccount, que pode ser assumida exclusivamente pela conta de Services da RealCloud por meio do AWS STS.
- Essa role concede acesso controlado e restrito a serviços relacionados a custos, billing, consumo, otimização e governança, conforme descrito abaixo
+## 2 - Políticas de Acesso Cross-Account
 
- 2.1. Faturamento e Custos (Billing & Cost Management)
-Account/Billing: Visualiza informações da conta, faturas e detalhes de contratos.
+Para habilitar a integração cross-account, é criada na conta do cliente a IAM Role **RealCloudCrossAccount**, que pode ser assumida exclusivamente pela conta de Services da RealCloud por meio do **AWS Security Token Service (STS)** utilizando **AssumeRole**.
 
-- Free Tier: Monitora o uso da camada gratuita e configura alertas de limite.
+A role concede acesso **somente leitura (read-only)** e controlado a serviços relacionados a **custos, billing, consumo, otimização, governança, segurança e inventário da infraestrutura**, sem permissões de alteração, exclusão ou provisionamento de recursos.
 
-- Budgets: Permite ver os orçamentos criados e o status de cada um em relação ao gasto real.
+As permissões são utilizadas exclusivamente para descoberta do ambiente, análise de consumo, recomendações de otimização e geração de insights operacionais, conforme detalhado abaixo.
 
-- Consolidated Billing: Em contas Master (Organizations), permite listar as contas vinculadas e fluxos de faturamento consolidado.
+### 2.1. Faturamento e Custos (Billing & Cost Management)
 
-- CUR (Cost and Usage Report): Acessa as definições dos relatórios detalhados de custo enviados para o S3.
+**Account/Billing:** Visualiza informações da conta, contratos, dados de faturamento e configurações relacionadas ao billing.
 
-- Invoicing & Payments: Visualiza faturas emitidas, histórico de pagamentos e ordens de compra (Purchase Orders).
+**Free Tier:** Monitora o consumo da camada gratuita da AWS para identificação de limites e potenciais cobranças futuras.
 
-- Cost Explorer (CE): Permissão central para geração de gráficos, previsões de gastos e análise histórica.
+**Budgets:** Permite visualizar orçamentos configurados e acompanhar o status de gastos em relação aos valores planejados.
 
-2.2. Otimização e Planejamento (FinOps & Savings)
-Pricing & Calculator: Consulta a tabela de preços oficial e visualiza cenários de estimativas de custos futuros.
+**Consolidated Billing:** Em ambientes com AWS Organizations, possibilita listar contas vinculadas e compreender a estrutura de faturamento consolidado.
 
-- Cost Optimization Hub: Acessa o painel centralizado de recomendações de economia da AWS.
+**CUR (Cost and Usage Report):** Acessa definições dos relatórios detalhados de custos e consumo enviados ao Amazon S3.
 
-- Savings Plans & RI: Lista e descreve planos de economia e instâncias reservadas (EC2/RDS) ativos ou disponíveis.
+**Invoicing & Payments:** Permite visualizar faturas emitidas, histórico de pagamentos e ordens de compra (Purchase Orders).
 
-- MAP Credits: Monitora créditos de migração (Migration Acceleration Program) e o cumprimento de metas de gastos trimestrais.
+**Cost Explorer (CE):** Permissão central para geração de análises históricas, tendências, previsões de gastos e segmentação de custos.
 
-2.3. Análise de Infraestrutura e Performance (Compute & Storage)
-EC2 & Auto Scaling: Analisa o detalhamento de instâncias, tipos de máquinas e grupos de escalonamento para identificar subutilização.
+**Pricing & Cost Modeling:** Consulta a tabela oficial de preços da AWS e recursos de estimativa para projeções financeiras e simulações de cenários.
 
-- Containers (EKS): Visualiza a existência de clusters Kubernetes para correlação de custos de infraestrutura de containers.
+---
 
-- Serverless (Lambda): Lista funções e configurações para análise de custos de execução e memória provisionada.
+### 2.2. Otimização Financeira e Planejamento (FinOps & Savings)
 
-- Storage & DB (S3, RDS, DynamoDB): Identifica buckets, bancos de dados e tabelas para mapear o crescimento de dados e custos de armazenamento.
+**Cost Optimization Hub:** Acessa recomendações centralizadas de redução de custos fornecidas pela AWS.
 
-2.4. Monitoramento e Utilização Reais (CloudWatch & Logs)
-CloudWatch Metrics: Acessa métricas de performance (CPU, Memória, I/O) para validar se as recomendações de Right Sizing são tecnicamente viáveis.
+**Savings Plans & Reserved Capacity:** Lista e analisa Savings Plans e reservas ativas para identificar cobertura, utilização e oportunidades de otimização financeira.
 
-- Logs: Descreve grupos de logs para identificar retenções excessivas que geram custos de armazenamento ocultos.
+**Compute Optimizer:** Avalia recomendações técnicas de right sizing para recursos computacionais com base em métricas reais de utilização.
 
-2.5. Governança, Segurança e Suporte
-Tagging: Lê etiquetas de recursos, fundamental para a alocação de custos por centro de custo, projeto ou departamento.
+**MAP Credits (Migration Acceleration Program):** Monitora créditos de migração e aderência aos objetivos financeiros associados.
 
-- Config & Security Hub: Verifica a conformidade de recursos e identifica ativos órfãos ou fora das políticas da empresa.
+**Trusted Advisor:** Consolida recomendações relacionadas a performance, resiliência, segurança e oportunidades de economia.
 
-- Service Quotas: Monitora limites de serviço para prever a necessidade de aumento de cota conforme o crescimento da infraestrutura.
+---
 
-- Trusted Advisor: Consolida recomendações de segurança, performance e redução de custos.
+### 2.3. Infraestrutura, Performance e Utilização (Compute, Containers & Storage)
 
-- Organizations: Mapeia a estrutura hierárquica de contas da empresa.
+**EC2 & Auto Scaling:** Analisa instâncias, famílias computacionais, padrões de utilização e grupos de Auto Scaling para identificação de subutilização, superdimensionamento ou oportunidades de rightsizing.
 
-- Support: Identifica o plano de suporte contratado para análise de custo-benefício.
-    
-- O acesso ocorre exclusivamente via STS AssumeRole, restrito à conta de Services da RealCloud.
+**Containers (EKS & ECS):** Identifica clusters Kubernetes e workloads em containers para correlação entre custos, consumo computacional e arquitetura de execução.
+
+**Elastic Load Balancing (ALB/NLB):** Analisa balanceadores de carga utilizados e sua relação com arquitetura, disponibilidade e custos operacionais.
+
+**Serverless (Lambda):** Lista funções e configurações para análise de custos de execução, memória provisionada e frequência de uso.
+
+**Storage & Databases (S3, RDS, DynamoDB, ElastiCache, Redshift e EFS):** Identifica buckets, bancos de dados, caches distribuídos, data warehouses e sistemas de arquivos compartilhados para mapear crescimento de armazenamento, utilização e oportunidades de otimização.
+
+**OpenSearch / Elasticsearch:** Permite analisar clusters de busca e observabilidade para avaliação de utilização e custos associados.
+
+**Infraestrutura de Rede (EC2 Networking):** Avalia componentes de rede, conectividade e topologia da infraestrutura para apoiar análises de arquitetura e eficiência operacional.
+
+---
+
+### 2.4. Monitoramento e Utilização Real (CloudWatch & Logs)
+
+**CloudWatch Metrics:** Acessa métricas operacionais (CPU, memória, throughput, I/O, latência e utilização) para validar tecnicamente recomendações de rightsizing e otimização.
+
+**CloudWatch Logs:** Descreve grupos de logs e configurações de retenção para identificar retenções excessivas e potenciais custos ocultos de armazenamento.
+
+---
+
+### 2.5. Governança, Segurança e Conformidade
+
+**Tagging:** Lê etiquetas (tags) aplicadas aos recursos, fundamentais para alocação de custos por centro de custo, projeto, ambiente, squad ou unidade de negócio.
+
+**AWS Config:** Verifica conformidade dos recursos e auxilia na identificação de ativos não padronizados ou fora de políticas corporativas.
+
+**Security Hub:** Consolida achados de segurança e postura de conformidade do ambiente.
+
+**Amazon Inspector:** Permite avaliar vulnerabilidades e exposição de workloads.
+
+**GuardDuty:** Auxilia na identificação de riscos de segurança, anomalias e possíveis comportamentos suspeitos detectados pela AWS.
+
+**Service Quotas:** Monitora limites de serviço para prever necessidades de expansão e evitar impactos operacionais.
+
+**AWS Organizations:** Permite mapear a estrutura hierárquica organizacional (OUs e contas vinculadas), facilitando análises centralizadas e segmentação financeira.
+
+**KMS, Secrets Manager e Systems Manager (SSM):** Utilizados para descoberta e inventário operacional de componentes gerenciados da infraestrutura.
+
+**SNS, SQS e AWS Backup:** Permitem identificar componentes de mensageria, automação e retenção/backup que possam impactar custos e arquitetura operacional.
+
+---
+
+### 2.6. Modelo de Segurança do Acesso
+
+O acesso ocorre exclusivamente via **AWS STS AssumeRole**, restrito à conta de Services da RealCloud previamente autorizada pelo cliente.
+
+A role possui permissões de **somente leitura (read-only)**, não incluindo privilégios de criação, alteração, exclusão ou interrupção de recursos do ambiente AWS do cliente.
+
+Adicionalmente, o acesso pode ser protegido por **External ID**, garantindo maior segurança no modelo cross-account e mitigando riscos de acesso indevido entre contas AWS.
+
+
 
 ## 3 - Como usar:
 
