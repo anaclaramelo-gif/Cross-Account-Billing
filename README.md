@@ -149,9 +149,7 @@ Adicionalmente, o acesso pode ser protegido por **External ID**, garantindo maio
 
 ## 3 - Como usar:
 
-Forneça ao cliente a URL do template CloudFormation hospedado no S3. Este link é o mesmo para todos os clientes:
-
-  URL: https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https%3A%2F%2Frealcloudcrossaccount.s3.us-east-2.amazonaws.com%2FRealCloudCrossAccountClient.yml&stackName=RealCloud-CrossAccount-Client
+Forneça ao cliente a URL do template CloudFormation hospedado no S3:
 
 # Conta AWS Individual (Standalone)
 
