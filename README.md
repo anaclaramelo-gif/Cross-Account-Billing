@@ -153,9 +153,20 @@ Forneça ao cliente a URL do template CloudFormation hospedado no S3. Este link 
 
   URL: https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https%3A%2F%2Frealcloudcrossaccount.s3.us-east-2.amazonaws.com%2FRealCloudCrossAccountClient.yml&stackName=RealCloud-CrossAccount-Client
 
-  Caso o cliente prefira baixar o arquivo via AWS CLI, ele deve utilizar o seguinte comando:
-  
-    aws s3 cp s3://realcloudcrossaccount/RealCloudCrossAccountClient.yml .
+#Conta AWS Individual (Standalone)
+
+Executa o onboarding apenas na conta em que a stack for criada.
+
+URL:
+https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https%3A%2F%2Frealcloudcrossaccount.s3.us-east-2.amazonaws.com%2FRealCloudCrossAccountClient.yml&stackName=RealCloud-CrossAccount-Client
+
+#Conta Management da AWS Organization
+
+Executa o onboarding na Management Account e propaga automaticamente o acesso para todas as contas-membro da organização por meio de AWS CloudFormation StackSets.
+
+URL:
+https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https%3A%2F%2Frealcloudcrossaccount.s3.us-east-2.amazonaws.com%2FRealCloudCrossAccountClient.yml&stackName=RealCloud-CrossAccount-Client&param_ClientName=NOME_DO_CLIENTE
+
 
   3.1. Execução da pilha:
   
