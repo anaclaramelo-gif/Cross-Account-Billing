@@ -1,7 +1,8 @@
 Description: >
-  RealCloudCrossAccount - This template creates a cross-account IAM role
-  that grants RealCloud access to billing, cost management, and billing-related
-  configuration features in your AWS account.
+  **RealCloudCrossAccount-OrgManagement** — Run this template **ONLY** in the Management Account of your AWS Organization. 
+  It automatically enables Trusted Access for CloudFormation StackSets, creates the cross-account IAM role in the Management Account,
+  and propagates the role to all member accounts through a SERVICE_MANAGED StackSet.
+
 
 Parameters:
   TrustedAccount:
@@ -11,17 +12,17 @@ Parameters:
   ExternalId:
     Type: String
     Default: ""
-    Description: "External ID for Cross-Account-Role (Optional for console access)"
+    Description: "External ID for Cross-Account-Role (Optional)"
   ClientName:
     Type: String
     Default: "MyCompany-AWS"
-    Description: "Identification name for this account in the RealCloud dashboard"
+    Description: "Identification name for this Organization in the RealCloud dashboard"
 
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "Cross-Account Role Configuration. *Do Not Modify*"
+          default: "Cross-Account Role Configuration — *Do Not Modify*"
         Parameters:
           - TrustedAccount
           - ExternalId
@@ -34,7 +35,20 @@ Metadata:
       ClientName:
         default: "Friendly Client Name"
 
+# ──────────────────────────────────────────────────────────────
+# ATENÇÃO: Este template é exclusivo para Management Accounts.
+# Se executado em uma member account ou conta standalone (sem
+# AWS Organization), o deploy falhará na etapa EnableTrustedAccess
+# com uma mensagem de erro clara.
+# ──────────────────────────────────────────────────────────────
+
 Resources:
+
+  # ============================================================
+  # 1. IAM Role na Management Account
+  #    Inclui organizations:EnableAWSServiceAccess para que o
+  #    Lambda possa ativar o Trusted Access via AssumeRole.
+  # ============================================================
   RealCloudCrossAccountRole:
     Type: AWS::IAM::Role
     Properties:
@@ -55,7 +69,7 @@ Resources:
               - Effect: Allow
                 Action:
                   # ==========================================
-                  # 💰 FATURAMENTO E CUSTOS 
+                  # 💰 FATURAMENTO E CUSTOS
                   # ==========================================
                   - "account:GetAccountInformation"
                   - "billing:Get*"
@@ -85,7 +99,18 @@ Resources:
                   - "savingsplans:List*"
 
                   # ==========================================
-                  # ⚙️ COMPUTAÇÃO E CONTAINERS 
+                  # 🏢 ORGANIZATIONS
+                  # EnableAWSServiceAccess: ativa Trusted Access
+                  # ListRoots: o Lambda busca o Root ID real
+                  # ==========================================
+                  - "organizations:Describe*"
+                  - "organizations:List*"
+                  - "organizations:EnableAWSServiceAccess"
+                  - "organizations:DisableAWSServiceAccess"
+                  - "organizations:ListAWSServiceAccessForOrganization"
+
+                  # ==========================================
+                  # ⚙️ COMPUTAÇÃO E CONTAINERS
                   # ==========================================
                   - "ec2:Describe*"
                   - "autoscaling:Describe*"
@@ -94,7 +119,7 @@ Resources:
                   - "lambda:List*"
 
                   # ==========================================
-                  # 🗄️ STORAGE E DATABASES 
+                  # 🗄️ STORAGE E DATABASES
                   # ==========================================
                   - "s3:Get*"
                   - "s3:List*"
@@ -111,7 +136,7 @@ Resources:
                   - "logs:Get*"
 
                   # ==========================================
-                  # 🛡️ GOVERNANÇA E SEGURANÇA 
+                  # 🛡️ GOVERNANÇA E SEGURANÇA
                   # ==========================================
                   - "config:Describe*"
                   - "config:Get*"
@@ -125,7 +150,7 @@ Resources:
                   - "servicequotas:Describe*"
 
                   # ==========================================
-                  # 🧠 OTIMIZAÇÃO E SUPORTE 
+                  # 🧠 OTIMIZAÇÃO E SUPORTE
                   # ==========================================
                   - "compute-optimizer:Get*"
                   - "compute-optimizer:Describe*"
@@ -135,15 +160,166 @@ Resources:
                   - "trustedadvisor:List*"
                   - "trustedadvisor:View*"
                   - "support:Describe*"
-                  - "organizations:Describe*"
-                  - "organizations:List*"
                   - "servicecatalog:ListApplications"
 
                 Resource: "*"
 
-  NotifyCrossAccountOnboarding:
-    Type: Custom::NotifyCrossAccount
+  # ============================================================
+  # 2. Custom Resource — valida Management Account,
+  #    habilita Trusted Access e resolve o Root ID.
+  #
+  #    O Lambda falhará explicitamente se:
+  #      - A conta não pertencer a nenhuma Organization
+  #      - A conta for uma member account (não a Management)
+  #
+  #    DependsOn garante que o role já existe antes desta chamada.
+  # ============================================================
+  EnableTrustedAccess:
+    Type: Custom::EnableTrustedAccess
     DependsOn: RealCloudCrossAccountRole
+    Properties:
+      ServiceToken: arn:aws:lambda:us-east-1:835950600873:function:cross-account
+      ClientAccountId: !Ref AWS::AccountId
+      RoleName: RealCloudCrossAccount
+      ExternalId: !Ref ExternalId
+      Action: "EnableTrustedAccess"
+
+  # ============================================================
+  # 3. StackSet — propaga o role para todas as member accounts
+  #
+  #    DependsOn: EnableTrustedAccess  ← garante que o Trusted
+  #    Access está ativo ANTES de tentar criar o StackSet.
+  #
+  #    O Root ID real vem do Output do Custom Resource acima:
+  #    !GetAtt EnableTrustedAccess.RootId
+  # ============================================================
+  RealCloudOrgStackSet:
+    Type: AWS::CloudFormation::StackSet
+    DependsOn: EnableTrustedAccess
+    Properties:
+      StackSetName: RealCloud-CrossAccount-MemberAccounts
+      Description: "Deploya o RealCloud Cross-Account Role em todas as contas da Organization"
+      PermissionModel: SERVICE_MANAGED
+      AutoDeployment:
+        Enabled: true               # novas contas na Org ganham o role automaticamente
+        RetainStacksOnAccountRemoval: false
+      Capabilities:
+        - CAPABILITY_NAMED_IAM
+      TemplateBody: |
+        Description: RealCloud Cross-Account Role — Member Account
+        Resources:
+          RealCloudCrossAccountRole:
+            Type: AWS::IAM::Role
+            Properties:
+              RoleName: RealCloudCrossAccount
+              Path: "/"
+              AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                  - Effect: Allow
+                    Action: sts:AssumeRole
+                    Principal:
+                      AWS: "arn:aws:iam::835950600873:root"
+              Policies:
+                - PolicyName: Billing-Access-RealCloud
+                  PolicyDocument:
+                    Version: "2012-10-17"
+                    Statement:
+                      - Effect: Allow
+                        Action:
+                          - "account:GetAccountInformation"
+                          - "billing:Get*"
+                          - "billing:List*"
+                          - "budgets:ViewBudget"
+                          - "budgets:Describe*"
+                          - "cur:Get*"
+                          - "cur:Describe*"
+                          - "ce:Get*"
+                          - "ce:Describe*"
+                          - "ce:List*"
+                          - "invoicing:Get*"
+                          - "invoicing:List*"
+                          - "payments:Get*"
+                          - "payments:List*"
+                          - "purchase-orders:GetPurchaseOrder"
+                          - "purchase-orders:ViewPurchaseOrders"
+                          - "pricing:DescribeServices"
+                          - "freetier:GetFreeTier*"
+                          - "savingsplans:Describe*"
+                          - "savingsplans:List*"
+                          - "ec2:Describe*"
+                          - "autoscaling:Describe*"
+                          - "eks:Describe*"
+                          - "lambda:Get*"
+                          - "lambda:List*"
+                          - "s3:Get*"
+                          - "s3:List*"
+                          - "rds:Describe*"
+                          - "dynamodb:Describe*"
+                          - "dynamodb:List*"
+                          - "cloudwatch:Get*"
+                          - "cloudwatch:List*"
+                          - "logs:Describe*"
+                          - "logs:Get*"
+                          - "config:Describe*"
+                          - "config:Get*"
+                          - "securityhub:Get*"
+                          - "securityhub:Describe*"
+                          - "inspector2:List*"
+                          - "inspector2:Get*"
+                          - "tag:Get*"
+                          - "servicequotas:Get*"
+                          - "servicequotas:List*"
+                          - "servicequotas:Describe*"
+                          - "compute-optimizer:Get*"
+                          - "compute-optimizer:Describe*"
+                          - "compute-optimizer:Export*"
+                          - "cost-optimization-hub:List*"
+                          - "trustedadvisor:Describe*"
+                          - "trustedadvisor:List*"
+                          - "trustedadvisor:View*"
+                          - "support:Describe*"
+                          - "organizations:Describe*"
+                          - "organizations:List*"
+                          - "servicecatalog:ListApplications"
+                          - "bcm-pricing-calculator:Get*"
+                          - "bcm-pricing-calculator:List*"
+                          - "bcm-recommended-actions:List*"
+                          - "mapcredits:List*"
+                          - "consolidatedbilling:GetAccountBillingRole"
+                          - "consolidatedbilling:ListLinkedAccounts"
+                        Resource: "*"
+          NotifyMemberOnboarding:
+            Type: Custom::NotifyCrossAccount
+            DependsOn: RealCloudCrossAccountRole
+            Properties:
+              ServiceToken: arn:aws:lambda:us-east-1:835950600873:function:cross-account
+              ClientAccountId: !Ref AWS::AccountId
+              RoleName: RealCloudCrossAccount
+              ExternalId: ""
+              ClientName: !Ref AWS::AccountId
+              StackName: !Ref AWS::StackName
+              IsOrgMember: "true"
+
+      StackInstancesGroup:
+        - DeploymentTargets:
+            OrganizationalUnitIds:
+              # Root ID real resolvido pelo Custom Resource EnableTrustedAccess
+              - !GetAtt EnableTrustedAccess.RootId
+          Regions:
+            - us-east-1
+
+      OperationPreferences:
+        FailureTolerancePercentage: 20
+        MaxConcurrentPercentage: 50
+        RegionConcurrencyType: PARALLEL
+
+  # ============================================================
+  # 4. Custom Resource — salva dados da Org no DynamoDB
+  # ============================================================
+  NotifyOrgOnboarding:
+    Type: Custom::NotifyCrossAccount
+    DependsOn: RealCloudOrgStackSet
     Properties:
       ServiceToken: arn:aws:lambda:us-east-1:835950600873:function:cross-account
       ClientAccountId: !Ref AWS::AccountId
@@ -151,3 +327,18 @@ Resources:
       ExternalId: !Ref ExternalId
       ClientName: !Ref ClientName
       StackName: !Ref AWS::StackName
+      IsManagementAccount: "true"
+
+Outputs:
+  ManagementAccountRoleArn:
+    Description: "ARN do role criado na Management Account"
+    Value: !GetAtt RealCloudCrossAccountRole.Arn
+  OrgRootId:
+    Description: "Root ID da Organization (resolvido automaticamente)"
+    Value: !GetAtt EnableTrustedAccess.RootId
+  StackSetName:
+    Description: "Nome do StackSet propagado para member accounts"
+    Value: !Ref RealCloudOrgStackSet
+  CrossAccountLink:
+    Description: "Link para assumir o role na Management Account"
+    Value: !Sub "https://signin.aws.amazon.com/switchrole?roleName=RealCloudCrossAccount&account=${AWS::AccountId}"
