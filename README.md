@@ -17,7 +17,7 @@
 1.2. Fluxo:
 
 
-
+![RealCloud Architecture](./realcloud_org_architecture.png)
 
 
  O fluxo acima descreve como a RealCloud habilita, de forma segura e automatizada, o acesso cross-account às informações de billing a conta do cliente, utilizando serviços nativos AWS. A solução é baseada em CloudFormation, IAM Roles, Lambda, DynamoDB e S3. 
