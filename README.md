@@ -213,21 +213,47 @@ Eventos:
 
 ## 6 - Dúvidas:
 
-6.1 Sim  
-6.2 Não  
-6.3 Não  
-6.4 Não  
-6.5 Sim  
-6.6 Não  
-6.7 Sim  
-6.8 Sim  
-6.9 Sob demanda  
+6.1. O cliente pode remover o acesso quando quiser?
+Sim.
+ O cliente pode remover o acesso a qualquer momento, bastando excluir a stack do   CloudFormation ou a IAM Role RealCloudCrossAccount criada para a integração.
+ Após a remoção, a RealCloud perde imediatamente o acesso à conta do cliente.
 
----
+6.2. Há impacto em custos?
+Não.
+ A criação da IAM Role e das políticas não gera custo adicional para o cliente.
+ O acesso é somente para leitura e análise de dados já existentes na conta.
 
-## 7 - Repositório:
+6.3. A RealCloud consegue criar, alterar ou excluir recursos?
+Não.
+ A role possui permissões restritas, focadas apenas em billing, custos, consumo e otimização, sem permitir ações de criação, modificação ou exclusão de recursos.
 
-github
+6.4. A RealCloud tem acesso a dados de aplicações?
+Não.
+ A integração não concede acesso a dados de aplicação, bancos de dados, código ou informações sensíveis.
+ O escopo é limitado a metadados e informações financeiras.
+
+6.5. O acesso é monitorado?
+Sim.
+ Todas as ações realizadas via cross-account podem ser auditadas pelo cliente através do AWS CloudTrail, garantindo total transparência.
+
+6.6. O acesso é permanente?
+Não.
+ O acesso permanece ativo apenas enquanto a role existir na conta do cliente.
+ Caso a role seja removida ou a stack excluída, o acesso é automaticamente revogado.
+
+6.7. O que acontece se a conta estiver em AWS Organizations?
+A role funciona normalmente tanto em contas standalone quanto em contas membros de uma Organization.
+ As permissões concedidas respeitam as políticas da Organization (SCPs) existentes.
+
+6.8. É possível limitar ainda mais as permissões?
+Sim.
+ Caso o cliente tenha alguma restrição específica, as permissões podem ser avaliadas e ajustadas, desde que não comprometam as funcionalidades necessárias para análise de custos e otimização.
+
+6.9. A RealCloud acessa a conta o tempo todo?
+Apenas sob demanda.
+ O acesso é realizado via Cross-Account Role sempre que for necessário coletar dados atualizados (ex: relatórios de billing, métricas de consumo, etc.). 
+
+
 
 ---
 
