@@ -74,54 +74,122 @@ A role concede acesso somente leitura (read-only) e controlado a serviços relac
 
 2.1. Faturamento e Custos (Billing & Cost Management):
 
-- account:GetAccountInformation — Informações gerais da conta AWS.
+- account:GetAccountInformation, account:ListRegions — Informações gerais da conta e regiões habilitadas.
 - billing:Get*, billing:List* — Dados de faturamento e contratos.
 - budgets:ViewBudget, budgets:Describe* — Orçamentos configurados e status de gastos.
 - cur:Get*, cur:Describe* — Cost and Usage Reports (CUR).
-- ce:Get*, ce:Describe*, ce:List* — Cost Explorer: análises históricas e previsões de custos.
+- ce:Get*, ce:Describe*, ce:List* — Cost Explorer, análises históricas e previsões de custos.
 - invoicing:Get*, invoicing:List* — Faturas emitidas e histórico.
 - payments:Get*, payments:List* — Histórico de pagamentos.
-- purchase-orders:* — Ordens de compra.
+- purchase-orders:GetPurchaseOrder, purchase-orders:ViewPurchaseOrders — Ordens de compra.
 - pricing:DescribeServices — Consulta à tabela oficial de preços da AWS.
 - freetier:GetFreeTier* — Monitoramento do Free Tier.
-- consolidatedbilling:* — Faturamento consolidado em ambientes AWS Organizations.
+- consolidatedbilling:GetAccountBillingRole, consolidatedbilling:ListLinkedAccounts — Faturamento consolidado em ambientes AWS Organizations.
 - mapcredits:List* — Créditos do programa AWS Migration Acceleration Program (MAP).
 
-### 2.2. Otimização Financeira e Planejamento (FinOps & Savings):
+2.2. FinOps, Planejamento e Recomendações:
 
-- savingsplans:Describe*, savingsplans:List* — Savings Plans e reservas ativas.
+- savingsplans:Describe*, savingsplans:List* — Savings Plans ativos.
 - bcm-pricing-calculator:Get*, bcm-pricing-calculator:List* — Calculadora de preços e projeções financeiras.
-- bcm-recommended-actions:List* — Ações recomendadas para otimização de custos.
-- cost-optimization-hub:List* — Hub centralizado de recomendações de custo.
-- compute-optimizer:Get*, compute-optimizer:Describe*, compute-optimizer:Export* — Recomendações de rightsizing e otimização de recursos.
-- trustedadvisor:Describe*, trustedadvisor:List*, trustedadvisor:View* — Recomendações relacionadas a desempenho, disponibilidade e economia.
+- bcm-recommended-actions:List* — Recomendações financeiras.
+- cost-optimization-hub:List* — Hub centralizado de otimização de custos.
+- compute-optimizer:Get*, compute-optimizer:Describe*, compute-optimizer:Export* — Recomendações de rightsizing.
+- trustedadvisor:Describe*, trustedadvisor:List*, trustedadvisor:View* — Recomendações de desempenho, disponibilidade e economia.
 
-### 2.3. Infraestrutura, Performance e Utilização:
+2.3. Cost Allocation, Categorias e Anomaly Detection:
 
-- ec2:Describe*, autoscaling:Describe* — Instâncias EC2, Auto Scaling Groups e padrões de utilização.
-- eks:Describe* — Clusters Kubernetes e workloads.
-- lambda:Get*, lambda:List* — Funções Lambda e respectivas configurações.
-- s3:Get*, s3:List* — Buckets e configurações de armazenamento.
-- rds:Describe* — Bancos de dados Amazon RDS.
-- dynamodb:Describe*, dynamodb:List* — Tabelas Amazon DynamoDB.
+- ce:ListCostAllocationTags, ce:GetTags — Tags utilizadas para alocação de custos.
+- ce:ListCostCategoryDefinitions — Categorias de custo definidas na conta.
+- ce:GetAnomalies — Detecção de anomalias de custos.
+- ce:GetAnomalyMonitors — Monitores de anomalias configurados.
+- ce:GetAnomalySubscriptions — Configurações de notificações de anomalias.
 
-### 2.4. Monitoramento e Utilização Real (CloudWatch & Logs):
+2.4. Reserved Instances e Savings:
 
-- cloudwatch:Get*, cloudwatch:List* — Métricas operacionais, incluindo CPU, memória, I/O e latência.
-- logs:Describe*, logs:Get* — Grupos de logs e configurações de retenção.
+- ec2:DescribeReservedInstances
+- ec2:DescribeReservedInstancesOfferings
+- rds:DescribeReservedDBInstances
+- elasticache:DescribeReservedCacheNodes
+- elasticache:DescribeReservedCacheNodesOfferings
+Permitem identificar reservas existentes e oportunidades de otimização financeira.
 
-### 2.5. Governança, Segurança e Conformidade:
+2.5. Computação, Containers e Escalabilidade:
 
-- organizations:Describe*, organizations:List* — Estrutura hierárquica da AWS Organization (Organizational Units e contas).
-- organizations:EnableAWSServiceAccess — Habilita o Trusted Access para AWS CloudFormation StackSets (somente na Management Account).
-- organizations:DisableAWSServiceAccess, organizations:ListAWSServiceAccessForOrganization — Gerenciamento e consulta do Trusted Access.
-- config:Describe*, config:Get* — Recursos auditados e conformidade.
-- securityhub:Get*, securityhub:Describe* — Achados de segurança e postura de conformidade.
-- inspector2:List*, inspector2:Get* — Vulnerabilidades e exposição de workloads.
-- tag:Get* — Tags utilizadas para alocação de custos e categorização por centro de custo.
-- servicequotas:Get*, servicequotas:List*, servicequotas:Describe* — Consulta os limites e cotas dos serviços AWS.
-- support:Describe* — Casos de suporte ativos.
-- servicecatalog:ListApplications — Aplicações registradas no AWS Service Catalog.
+- ec2:Describe* — Instâncias EC2.
+- autoscaling:Describe*, DescribePolicies, DescribeScalingActivities — Auto Scaling Groups.
+- eks:Describe*, eks:List* — Clusters Amazon EKS.
+- ecs:Describe*, ecs:List* — Clusters Amazon ECS.
+- lambda:Get*, lambda:List* — Funções AWS Lambda.
+
+2.6. Armazenamento e Bancos de Dados: 
+
+- s3:Get*, s3:List* — Buckets e configurações.
+- rds:Describe* — Amazon RDS.
+- dynamodb:Describe*, dynamodb:List* — Amazon DynamoDB.
+- elasticache:Describe*, elasticache:List* — ElastiCache.
+- redshift:Describe*, redshift:List*, redshift:View* — Amazon Redshift.
+- elasticfilesystem:Describe*, elasticfilesystem:List* — Amazon EFS.
+- glacier:Describe*, glacier:List*, glacier:GetVaultNotifications — Armazenamento de longo prazo.
+
+2.7. Redes, Balanceamento e Distribuição:
+- elasticloadbalancing:Describe* — Load Balancers.
+- cloudfront:Get*, cloudfront:List* — Distribuições CloudFront.
+- globalaccelerator:Describe*, globalaccelerator:List* — AWS Global Accelerator.
+- directconnect:Describe* — AWS Direct Connect.
+
+2.8. Mensageria, Streaming e Integração: 
+
+- sqs:Get*, sqs:List* — Amazon SQS.
+- sns:Get*, sns:List* — Amazon SNS.
+- events:Describe*, events:List* — Amazon EventBridge.
+- kinesis:Describe*, kinesis:List* — Amazon Kinesis.
+- firehose:Describe*, firehose:List* — Amazon Kinesis Data Firehose.
+- states:Describe*, states:List* — AWS Step Functions.
+- glue:Get*, glue:List* — AWS Glue.
+- transfer:Describe*, transfer:List* — AWS Transfer Family.
+
+2.9. Machine Learning e Inteligência Artificial:
+
+- sagemaker:Describe*
+- sagemaker:List*
+Permite identificar recursos de Machine Learning e potenciais oportunidades de otimização.
+
+2.10. End User Computing:
+
+- workspaces:Describe* — Amazon WorkSpaces.
+- appstream:Describe*, appstream:List* — Amazon AppStream 2.0.
+
+2.11. Backup e Recuperação: 
+
+- backup:Describe*
+- backup:List*
+- backup:Get*
+Permite visibilidade sobre planos, vaults e jobs do AWS Backup.
+
+2.12. Marketplace:
+
+- aws-marketplace:GetEntitlements
+- aws-marketplace:ViewSubscriptions
+Permite identificar produtos e assinaturas adquiridos pelo AWS Marketplace.
+
+2.13. Monitoramento e Observabilidade:
+- cloudwatch:Get*, cloudwatch:List* — Métricas operacionais.
+- logs:Describe*, logs:Get* — Logs e políticas de retenção.
+
+2.14. Governança, Segurança e Conformidade:
+- organizations:Describe*, organizations:List* — Estrutura da AWS Organization.-
+- organizations:EnableAWSServiceAccess — Habilita o Trusted Access do CloudFormation StackSets (somente na Management Account).
+- organizations:DisableAWSServiceAccess
+- organizations:ListAWSServiceAccessForOrganization
+- config:Describe*, config:Get* — AWS Config.
+- securityhub:Get*, securityhub:Describe* — AWS Security Hub.
+- inspector2:List*, inspector2:Get* — Amazon Inspector.
+- tag:Get* — Tags de recursos.
+- servicequotas:Get*, servicequotas:List*, servicequotas:Describe* — Service Quotas.
+- support:Describe* — Casos de suporte.
+- servicecatalog:ListApplications — Aplicações registradas.
+- wafv2:Get*, wafv2:List* — AWS WAF.
+- shield:Describe*, shield:List* — AWS Shield.
 
 
 ## 3 - Como usar:
