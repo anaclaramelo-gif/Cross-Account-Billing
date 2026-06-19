@@ -72,6 +72,7 @@ Resources:
                   # 💰 FATURAMENTO E CUSTOS
                   # ==========================================
                   - "account:GetAccountInformation"
+                  - "account:ListRegions"
                   - "billing:Get*"
                   - "billing:List*"
                   - "budgets:ViewBudget"
@@ -100,8 +101,6 @@ Resources:
 
                   # ==========================================
                   # 🏷️ COST ALLOCATION TAGS E CATEGORIAS
-                  #    [ADICIONADO] Essencial para alocação de
-                  #    custo por squad/projeto/ambiente.
                   # ==========================================
                   - "ce:ListCostAllocationTags"
                   - "ce:ListCostCategoryDefinitions"
@@ -109,8 +108,6 @@ Resources:
 
                   # ==========================================
                   # 🚨 ANOMALY DETECTION
-                  #    [ADICIONADO] Detecção de picos de gasto
-                  #    anômalos — padrão de mercado em FinOps.
                   # ==========================================
                   - "ce:GetAnomalies"
                   - "ce:GetAnomalyMonitors"
@@ -118,18 +115,15 @@ Resources:
 
                   # ==========================================
                   # 🛒 RESERVED INSTANCES (RI)
-                  #    [ADICIONADO] Cobertura/utilização de RIs
-                  #    tradicionais (além dos Savings Plans).
                   # ==========================================
                   - "ec2:DescribeReservedInstances"
                   - "ec2:DescribeReservedInstancesOfferings"
                   - "rds:DescribeReservedDBInstances"
                   - "elasticache:DescribeReservedCacheNodes"
+                  - "elasticache:DescribeReservedCacheNodesOfferings"
 
                   # ==========================================
                   # 🏢 ORGANIZATIONS
-                  # EnableAWSServiceAccess: ativa Trusted Access
-                  # ListRoots: o Lambda busca o Root ID real
                   # ==========================================
                   - "organizations:Describe*"
                   - "organizations:List*"
@@ -141,9 +135,9 @@ Resources:
                   # ⚙️ COMPUTAÇÃO E CONTAINERS
                   # ==========================================
                   - "ec2:Describe*"
-                  - "ec2:DescribeSpotPriceHistory"
-                  - "ec2:DescribeSpotInstanceRequests"
                   - "autoscaling:Describe*"
+                  - "autoscaling:DescribePolicies"
+                  - "autoscaling:DescribeScalingActivities"
                   - "eks:Describe*"
                   - "eks:List*"
                   - "lambda:Get*"
@@ -151,8 +145,6 @@ Resources:
 
                   # ==========================================
                   # 🐳 ECS (CONTAINERS)
-                  #    [ADICIONADO] Visibilidade de workloads
-                  #    ECS (Fargate e EC2 launch type).
                   # ==========================================
                   - "ecs:Describe*"
                   - "ecs:List*"
@@ -168,16 +160,12 @@ Resources:
 
                   # ==========================================
                   # 🔴 ELASTICACHE
-                  #    [ADICIONADO] Visibilidade de clusters
-                  #    Redis/Memcached para análise de custo.
                   # ==========================================
                   - "elasticache:Describe*"
                   - "elasticache:List*"
 
                   # ==========================================
                   # 📦 REDSHIFT
-                  #    [ADICIONADO] Visibilidade de clusters
-                  #    Redshift (data warehouse).
                   # ==========================================
                   - "redshift:Describe*"
                   - "redshift:List*"
@@ -185,16 +173,12 @@ Resources:
 
                   # ==========================================
                   # 📁 ELASTIC FILE SYSTEM (EFS)
-                  #    [ADICIONADO] Visibilidade de sistemas
-                  #    de arquivos EFS.
                   # ==========================================
                   - "elasticfilesystem:Describe*"
                   - "elasticfilesystem:List*"
 
                   # ==========================================
                   # 🔍 OPENSEARCH / ELASTICSEARCH
-                  #    [ADICIONADO] Visibilidade de domínios
-                  #    OpenSearch/Elasticsearch.
                   # ==========================================
                   - "es:Describe*"
                   - "es:List*"
@@ -202,17 +186,125 @@ Resources:
 
                   # ==========================================
                   # ⚖️ ELASTIC LOAD BALANCING
-                  #    [ADICIONADO] Visibilidade de ALB/NLB/CLB.
                   # ==========================================
                   - "elasticloadbalancing:Describe*"
 
                   # ==========================================
                   # 🛒 AWS MARKETPLACE
-                  #    [ADICIONADO] Visibilidade de gastos e
-                  #    assinaturas via Marketplace.
                   # ==========================================
                   - "aws-marketplace:GetEntitlements"
                   - "aws-marketplace:ViewSubscriptions"
+
+                  # ==========================================
+                  # 🧊 GLACIER / ARCHIVAL STORAGE
+                  #    [v3] Custo de storage frio frequentemente
+                  #    invisível em análises de FinOps.
+                  # ==========================================
+                  - "glacier:Describe*"
+                  - "glacier:List*"
+                  - "glacier:GetVaultNotifications"
+
+                  # ==========================================
+                  # 🖥️ WORKSPACES E APPSTREAM (VDI/Desktop)
+                  #    [v3] Comum em enterprises — custo fixo
+                  #    mensal alto e frequentemente subutilizado.
+                  # ==========================================
+                  - "workspaces:Describe*"
+                  - "appstream:Describe*"
+                  - "appstream:List*"
+
+                  # ==========================================
+                  # 🔗 DIRECT CONNECT
+                  #    [v3] Custo de conectividade dedicada —
+                  #    porto fixo + transferência de dados.
+                  # ==========================================
+                  - "directconnect:Describe*"
+
+                  # ==========================================
+                  # 💾 AWS BACKUP
+                  #    [v3] Visibilidade de políticas, jobs e
+                  #    vaults de backup — custo recorrente de
+                  #    storage frequentemente negligenciado.
+                  # ==========================================
+                  - "backup:Describe*"
+                  - "backup:List*"
+                  - "backup:Get*"
+
+                  # ==========================================
+                  # 🌐 CLOUDFRONT (CDN)
+                  #    [v3] Custo de transferência de dados e
+                  #    requests — essencial em ambientes com
+                  #    alto tráfego de conteúdo estático.
+                  # ==========================================
+                  - "cloudfront:Get*"
+                  - "cloudfront:List*"
+
+                  # ==========================================
+                  # 🚀 GLOBAL ACCELERATOR
+                  #    [v3] Custo fixo mensal alto — frequente-
+                  #    mente provisionado e esquecido.
+                  # ==========================================
+                  - "globalaccelerator:Describe*"
+                  - "globalaccelerator:List*"
+
+                  # ==========================================
+                  # 📨 MESSAGING (SQS / SNS / EVENTBRIDGE)
+                  #    [v3] Custo por request em escala pode
+                  #    ser significativo em arquiteturas event-
+                  #    driven sem controle de volume.
+                  # ==========================================
+                  - "sqs:Get*"
+                  - "sqs:List*"
+                  - "sns:Get*"
+                  - "sns:List*"
+                  - "events:Describe*"
+                  - "events:List*"
+
+                  # ==========================================
+                  # 🌊 STREAMING (KINESIS / FIREHOSE)
+                  #    [v3] Custo por shard-hora — shards ociosos
+                  #    ou superprovisionados são desperdício direto.
+                  # ==========================================
+                  - "kinesis:Describe*"
+                  - "kinesis:List*"
+                  - "firehose:Describe*"
+                  - "firehose:List*"
+
+                  # ==========================================
+                  # 🤖 SAGEMAKER (ML/IA)
+                  #    [v3] Maior potencial de desperdício na AWS —
+                  #    notebooks e endpoints idle consomem muito.
+                  # ==========================================
+                  - "sagemaker:Describe*"
+                  - "sagemaker:List*"
+
+                  # ==========================================
+                  # 🔄 ORQUESTRAÇÃO (STEP FUNCTIONS / GLUE)
+                  #    [v3] Custo por execução — pipelines de
+                  #    dados mal dimensionados ou redundantes.
+                  # ==========================================
+                  - "states:Describe*"
+                  - "states:List*"
+                  - "glue:Get*"
+                  - "glue:List*"
+
+                  # ==========================================
+                  # 🔀 TRANSFER FAMILY
+                  #    [v3] Custo de transferência de dados
+                  #    gerenciada (SFTP/FTP/FTPS endpoints).
+                  # ==========================================
+                  - "transfer:Describe*"
+                  - "transfer:List*"
+
+                  # ==========================================
+                  # 🛡️ WAF E SHIELD
+                  #    [v3] Custo recorrente de segurança —
+                  #    Shield Advanced tem custo fixo elevado.
+                  # ==========================================
+                  - "wafv2:Get*"
+                  - "wafv2:List*"
+                  - "shield:Describe*"
+                  - "shield:List*"
 
                   # ==========================================
                   # 📊 MONITORAMENTO E METRICAS
@@ -254,12 +346,6 @@ Resources:
   # ============================================================
   # 2. Custom Resource — valida Management Account,
   #    habilita Trusted Access e resolve o Root ID.
-  #
-  #    O Lambda falhará explicitamente se:
-  #      - A conta não pertencer a nenhuma Organization
-  #      - A conta for uma member account (não a Management)
-  #
-  #    DependsOn garante que o role já existe antes desta chamada.
   # ============================================================
   EnableTrustedAccess:
     Type: Custom::EnableTrustedAccess
@@ -273,12 +359,6 @@ Resources:
 
   # ============================================================
   # 3. StackSet — propaga o role para todas as member accounts
-  #
-  #    DependsOn: EnableTrustedAccess  ← garante que o Trusted
-  #    Access está ativo ANTES de tentar criar o StackSet.
-  #
-  #    O Root ID real vem do Output do Custom Resource acima:
-  #    !GetAtt EnableTrustedAccess.RootId
   # ============================================================
   RealCloudOrgStackSet:
     Type: AWS::CloudFormation::StackSet
@@ -288,7 +368,7 @@ Resources:
       Description: "Deploya o RealCloud Cross-Account Role em todas as contas da Organization"
       PermissionModel: SERVICE_MANAGED
       AutoDeployment:
-        Enabled: true               # novas contas na Org ganham o role automaticamente
+        Enabled: true
         RetainStacksOnAccountRemoval: false
       Capabilities:
         - CAPABILITY_NAMED_IAM
@@ -316,6 +396,7 @@ Resources:
                         Action:
                           # 💰 FATURAMENTO E CUSTOS
                           - "account:GetAccountInformation"
+                          - "account:ListRegions"
                           - "billing:Get*"
                           - "billing:List*"
                           - "budgets:ViewBudget"
@@ -335,32 +416,33 @@ Resources:
                           - "freetier:GetFreeTier*"
                           - "savingsplans:Describe*"
                           - "savingsplans:List*"
-                          # 🏷️ COST ALLOCATION TAGS E CATEGORIAS [ADICIONADO]
+                          # 🏷️ COST ALLOCATION TAGS E CATEGORIAS
                           - "ce:ListCostAllocationTags"
                           - "ce:ListCostCategoryDefinitions"
                           - "ce:GetTags"
-                          # 🚨 ANOMALY DETECTION [ADICIONADO]
+                          # 🚨 ANOMALY DETECTION
                           - "ce:GetAnomalies"
                           - "ce:GetAnomalyMonitors"
                           - "ce:GetAnomalySubscriptions"
-                          # 🛒 RESERVED INSTANCES [ADICIONADO]
+                          # 🛒 RESERVED INSTANCES
                           - "ec2:DescribeReservedInstances"
                           - "ec2:DescribeReservedInstancesOfferings"
                           - "rds:DescribeReservedDBInstances"
                           - "elasticache:DescribeReservedCacheNodes"
+                          - "elasticache:DescribeReservedCacheNodesOfferings"
                           # 🏢 ORGANIZATIONS
                           - "organizations:Describe*"
                           - "organizations:List*"
                           # ⚙️ COMPUTAÇÃO
                           - "ec2:Describe*"
-                          - "ec2:DescribeSpotPriceHistory"
-                          - "ec2:DescribeSpotInstanceRequests"
                           - "autoscaling:Describe*"
+                          - "autoscaling:DescribePolicies"
+                          - "autoscaling:DescribeScalingActivities"
                           - "eks:Describe*"
                           - "eks:List*"
                           - "lambda:Get*"
                           - "lambda:List*"
-                          # 🐳 ECS [ADICIONADO]
+                          # 🐳 ECS
                           - "ecs:Describe*"
                           - "ecs:List*"
                           # 🗄️ STORAGE E DATABASES
@@ -369,25 +451,73 @@ Resources:
                           - "rds:Describe*"
                           - "dynamodb:Describe*"
                           - "dynamodb:List*"
-                          # 🔴 ELASTICACHE [ADICIONADO]
+                          # 🔴 ELASTICACHE
                           - "elasticache:Describe*"
                           - "elasticache:List*"
-                          # 📦 REDSHIFT [ADICIONADO]
+                          # 📦 REDSHIFT
                           - "redshift:Describe*"
                           - "redshift:List*"
                           - "redshift:View*"
-                          # 📁 EFS [ADICIONADO]
+                          # 📁 EFS
                           - "elasticfilesystem:Describe*"
                           - "elasticfilesystem:List*"
-                          # 🔍 OPENSEARCH [ADICIONADO]
+                          # 🔍 OPENSEARCH
                           - "es:Describe*"
                           - "es:List*"
                           - "es:Get*"
-                          # ⚖️ ELASTIC LOAD BALANCING [ADICIONADO]
+                          # ⚖️ ELASTIC LOAD BALANCING
                           - "elasticloadbalancing:Describe*"
-                          # 🛒 AWS MARKETPLACE [ADICIONADO]
+                          # 🛒 AWS MARKETPLACE
                           - "aws-marketplace:GetEntitlements"
                           - "aws-marketplace:ViewSubscriptions"
+                          # 🧊 GLACIER / ARCHIVAL STORAGE [v3]
+                          - "glacier:Describe*"
+                          - "glacier:List*"
+                          - "glacier:GetVaultNotifications"
+                          # 🖥️ WORKSPACES E APPSTREAM [v3]
+                          - "workspaces:Describe*"
+                          - "appstream:Describe*"
+                          - "appstream:List*"
+                          # 🔗 DIRECT CONNECT [v3]
+                          - "directconnect:Describe*"
+                          # 💾 AWS BACKUP [v3]
+                          - "backup:Describe*"
+                          - "backup:List*"
+                          - "backup:Get*"
+                          # 🌐 CLOUDFRONT [v3]
+                          - "cloudfront:Get*"
+                          - "cloudfront:List*"
+                          # 🚀 GLOBAL ACCELERATOR [v3]
+                          - "globalaccelerator:Describe*"
+                          - "globalaccelerator:List*"
+                          # 📨 MESSAGING — SQS / SNS / EVENTBRIDGE [v3]
+                          - "sqs:Get*"
+                          - "sqs:List*"
+                          - "sns:Get*"
+                          - "sns:List*"
+                          - "events:Describe*"
+                          - "events:List*"
+                          # 🌊 STREAMING — KINESIS / FIREHOSE [v3]
+                          - "kinesis:Describe*"
+                          - "kinesis:List*"
+                          - "firehose:Describe*"
+                          - "firehose:List*"
+                          # 🤖 SAGEMAKER [v3]
+                          - "sagemaker:Describe*"
+                          - "sagemaker:List*"
+                          # 🔄 ORQUESTRAÇÃO — STEP FUNCTIONS / GLUE [v3]
+                          - "states:Describe*"
+                          - "states:List*"
+                          - "glue:Get*"
+                          - "glue:List*"
+                          # 🔀 TRANSFER FAMILY [v3]
+                          - "transfer:Describe*"
+                          - "transfer:List*"
+                          # 🛡️ WAF E SHIELD [v3]
+                          - "wafv2:Get*"
+                          - "wafv2:List*"
+                          - "shield:Describe*"
+                          - "shield:List*"
                           # 📊 MONITORAMENTO
                           - "cloudwatch:Get*"
                           - "cloudwatch:List*"
@@ -413,8 +543,6 @@ Resources:
                           - "trustedadvisor:List*"
                           - "trustedadvisor:View*"
                           - "support:Describe*"
-                          - "organizations:Describe*"
-                          - "organizations:List*"
                           - "servicecatalog:ListApplications"
                           - "bcm-pricing-calculator:Get*"
                           - "bcm-pricing-calculator:List*"
@@ -438,7 +566,6 @@ Resources:
       StackInstancesGroup:
         - DeploymentTargets:
             OrganizationalUnitIds:
-              # Root ID real resolvido pelo Custom Resource EnableTrustedAccess
               - !GetAtt EnableTrustedAccess.RootId
           Regions:
             - us-east-1
