@@ -99,6 +99,34 @@ Resources:
                   - "savingsplans:List*"
 
                   # ==========================================
+                  # 🏷️ COST ALLOCATION TAGS E CATEGORIAS
+                  #    [ADICIONADO] Essencial para alocação de
+                  #    custo por squad/projeto/ambiente.
+                  # ==========================================
+                  - "ce:ListCostAllocationTags"
+                  - "ce:ListCostCategoryDefinitions"
+                  - "ce:GetTags"
+
+                  # ==========================================
+                  # 🚨 ANOMALY DETECTION
+                  #    [ADICIONADO] Detecção de picos de gasto
+                  #    anômalos — padrão de mercado em FinOps.
+                  # ==========================================
+                  - "ce:GetAnomalies"
+                  - "ce:GetAnomalyMonitors"
+                  - "ce:GetAnomalySubscriptions"
+
+                  # ==========================================
+                  # 🛒 RESERVED INSTANCES (RI)
+                  #    [ADICIONADO] Cobertura/utilização de RIs
+                  #    tradicionais (além dos Savings Plans).
+                  # ==========================================
+                  - "ec2:DescribeReservedInstances"
+                  - "ec2:DescribeReservedInstancesOfferings"
+                  - "rds:DescribeReservedDBInstances"
+                  - "elasticache:DescribeReservedCacheNodes"
+
+                  # ==========================================
                   # 🏢 ORGANIZATIONS
                   # EnableAWSServiceAccess: ativa Trusted Access
                   # ListRoots: o Lambda busca o Root ID real
@@ -113,10 +141,21 @@ Resources:
                   # ⚙️ COMPUTAÇÃO E CONTAINERS
                   # ==========================================
                   - "ec2:Describe*"
+                  - "ec2:DescribeSpotPriceHistory"
+                  - "ec2:DescribeSpotInstanceRequests"
                   - "autoscaling:Describe*"
                   - "eks:Describe*"
+                  - "eks:List*"
                   - "lambda:Get*"
                   - "lambda:List*"
+
+                  # ==========================================
+                  # 🐳 ECS (CONTAINERS)
+                  #    [ADICIONADO] Visibilidade de workloads
+                  #    ECS (Fargate e EC2 launch type).
+                  # ==========================================
+                  - "ecs:Describe*"
+                  - "ecs:List*"
 
                   # ==========================================
                   # 🗄️ STORAGE E DATABASES
@@ -126,6 +165,54 @@ Resources:
                   - "rds:Describe*"
                   - "dynamodb:Describe*"
                   - "dynamodb:List*"
+
+                  # ==========================================
+                  # 🔴 ELASTICACHE
+                  #    [ADICIONADO] Visibilidade de clusters
+                  #    Redis/Memcached para análise de custo.
+                  # ==========================================
+                  - "elasticache:Describe*"
+                  - "elasticache:List*"
+
+                  # ==========================================
+                  # 📦 REDSHIFT
+                  #    [ADICIONADO] Visibilidade de clusters
+                  #    Redshift (data warehouse).
+                  # ==========================================
+                  - "redshift:Describe*"
+                  - "redshift:List*"
+                  - "redshift:View*"
+
+                  # ==========================================
+                  # 📁 ELASTIC FILE SYSTEM (EFS)
+                  #    [ADICIONADO] Visibilidade de sistemas
+                  #    de arquivos EFS.
+                  # ==========================================
+                  - "elasticfilesystem:Describe*"
+                  - "elasticfilesystem:List*"
+
+                  # ==========================================
+                  # 🔍 OPENSEARCH / ELASTICSEARCH
+                  #    [ADICIONADO] Visibilidade de domínios
+                  #    OpenSearch/Elasticsearch.
+                  # ==========================================
+                  - "es:Describe*"
+                  - "es:List*"
+                  - "es:Get*"
+
+                  # ==========================================
+                  # ⚖️ ELASTIC LOAD BALANCING
+                  #    [ADICIONADO] Visibilidade de ALB/NLB/CLB.
+                  # ==========================================
+                  - "elasticloadbalancing:Describe*"
+
+                  # ==========================================
+                  # 🛒 AWS MARKETPLACE
+                  #    [ADICIONADO] Visibilidade de gastos e
+                  #    assinaturas via Marketplace.
+                  # ==========================================
+                  - "aws-marketplace:GetEntitlements"
+                  - "aws-marketplace:ViewSubscriptions"
 
                   # ==========================================
                   # 📊 MONITORAMENTO E METRICAS
@@ -227,6 +314,7 @@ Resources:
                     Statement:
                       - Effect: Allow
                         Action:
+                          # 💰 FATURAMENTO E CUSTOS
                           - "account:GetAccountInformation"
                           - "billing:Get*"
                           - "billing:List*"
@@ -247,20 +335,65 @@ Resources:
                           - "freetier:GetFreeTier*"
                           - "savingsplans:Describe*"
                           - "savingsplans:List*"
+                          # 🏷️ COST ALLOCATION TAGS E CATEGORIAS [ADICIONADO]
+                          - "ce:ListCostAllocationTags"
+                          - "ce:ListCostCategoryDefinitions"
+                          - "ce:GetTags"
+                          # 🚨 ANOMALY DETECTION [ADICIONADO]
+                          - "ce:GetAnomalies"
+                          - "ce:GetAnomalyMonitors"
+                          - "ce:GetAnomalySubscriptions"
+                          # 🛒 RESERVED INSTANCES [ADICIONADO]
+                          - "ec2:DescribeReservedInstances"
+                          - "ec2:DescribeReservedInstancesOfferings"
+                          - "rds:DescribeReservedDBInstances"
+                          - "elasticache:DescribeReservedCacheNodes"
+                          # 🏢 ORGANIZATIONS
+                          - "organizations:Describe*"
+                          - "organizations:List*"
+                          # ⚙️ COMPUTAÇÃO
                           - "ec2:Describe*"
+                          - "ec2:DescribeSpotPriceHistory"
+                          - "ec2:DescribeSpotInstanceRequests"
                           - "autoscaling:Describe*"
                           - "eks:Describe*"
+                          - "eks:List*"
                           - "lambda:Get*"
                           - "lambda:List*"
+                          # 🐳 ECS [ADICIONADO]
+                          - "ecs:Describe*"
+                          - "ecs:List*"
+                          # 🗄️ STORAGE E DATABASES
                           - "s3:Get*"
                           - "s3:List*"
                           - "rds:Describe*"
                           - "dynamodb:Describe*"
                           - "dynamodb:List*"
+                          # 🔴 ELASTICACHE [ADICIONADO]
+                          - "elasticache:Describe*"
+                          - "elasticache:List*"
+                          # 📦 REDSHIFT [ADICIONADO]
+                          - "redshift:Describe*"
+                          - "redshift:List*"
+                          - "redshift:View*"
+                          # 📁 EFS [ADICIONADO]
+                          - "elasticfilesystem:Describe*"
+                          - "elasticfilesystem:List*"
+                          # 🔍 OPENSEARCH [ADICIONADO]
+                          - "es:Describe*"
+                          - "es:List*"
+                          - "es:Get*"
+                          # ⚖️ ELASTIC LOAD BALANCING [ADICIONADO]
+                          - "elasticloadbalancing:Describe*"
+                          # 🛒 AWS MARKETPLACE [ADICIONADO]
+                          - "aws-marketplace:GetEntitlements"
+                          - "aws-marketplace:ViewSubscriptions"
+                          # 📊 MONITORAMENTO
                           - "cloudwatch:Get*"
                           - "cloudwatch:List*"
                           - "logs:Describe*"
                           - "logs:Get*"
+                          # 🛡️ GOVERNANÇA
                           - "config:Describe*"
                           - "config:Get*"
                           - "securityhub:Get*"
@@ -271,6 +404,7 @@ Resources:
                           - "servicequotas:Get*"
                           - "servicequotas:List*"
                           - "servicequotas:Describe*"
+                          # 🧠 OTIMIZAÇÃO
                           - "compute-optimizer:Get*"
                           - "compute-optimizer:Describe*"
                           - "compute-optimizer:Export*"
