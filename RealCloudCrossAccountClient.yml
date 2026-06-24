@@ -1,8 +1,6 @@
 Description: >
-  **RealCloudCrossAccount-OrgManagement** — Run this template **ONLY** in the Management Account of your AWS Organization. 
-  It automatically enables Trusted Access for CloudFormation StackSets, creates the cross-account IAM role in the Management Account,
-  and propagates the role to all member accounts through a SERVICE_MANAGED StackSet.
-
+  RealCloudCrossAccount — Execute este template APENAS na Management Account da sua AWS Organization.
+  Cria o role cross-account e registra a conta no painel da RealCloud.
 
 Parameters:
   TrustedAccount:
@@ -35,20 +33,9 @@ Metadata:
       ClientName:
         default: "Friendly Client Name"
 
-# ──────────────────────────────────────────────────────────────
-# ATENÇÃO: Este template é exclusivo para Management Accounts.
-# Se executado em uma member account ou conta standalone (sem
-# AWS Organization), o deploy falhará na etapa EnableTrustedAccess
-# com uma mensagem de erro clara.
-# ──────────────────────────────────────────────────────────────
-
 Resources:
 
-  # ============================================================
-  # 1. IAM Role na Management Account
-  #    Inclui organizations:EnableAWSServiceAccess para que o
-  #    Lambda possa ativar o Trusted Access via AssumeRole.
-  # ============================================================
+  # ── 1. IAM Role na Management Account ──────────────────────
   RealCloudCrossAccountRole:
     Type: AWS::IAM::Role
     Properties:
@@ -68,9 +55,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  # ==========================================
                   # 💰 FATURAMENTO E CUSTOS
-                  # ==========================================
                   - "account:GetAccountInformation"
                   - "account:ListRegions"
                   - "billing:Get*"
@@ -98,42 +83,27 @@ Resources:
                   - "bcm-recommended-actions:List*"
                   - "savingsplans:Describe*"
                   - "savingsplans:List*"
-
-                  # ==========================================
                   # 🏷️ COST ALLOCATION TAGS E CATEGORIAS
-                  # ==========================================
                   - "ce:ListCostAllocationTags"
                   - "ce:ListCostCategoryDefinitions"
                   - "ce:GetTags"
-
-                  # ==========================================
                   # 🚨 ANOMALY DETECTION
-                  # ==========================================
                   - "ce:GetAnomalies"
                   - "ce:GetAnomalyMonitors"
                   - "ce:GetAnomalySubscriptions"
-
-                  # ==========================================
-                  # 🛒 RESERVED INSTANCES (RI)
-                  # ==========================================
+                  # 🛒 RESERVED INSTANCES
                   - "ec2:DescribeReservedInstances"
                   - "ec2:DescribeReservedInstancesOfferings"
                   - "rds:DescribeReservedDBInstances"
                   - "elasticache:DescribeReservedCacheNodes"
                   - "elasticache:DescribeReservedCacheNodesOfferings"
-
-                  # ==========================================
                   # 🏢 ORGANIZATIONS
-                  # ==========================================
                   - "organizations:Describe*"
                   - "organizations:List*"
                   - "organizations:EnableAWSServiceAccess"
                   - "organizations:DisableAWSServiceAccess"
                   - "organizations:ListAWSServiceAccessForOrganization"
-
-                  # ==========================================
                   # ⚙️ COMPUTAÇÃO E CONTAINERS
-                  # ==========================================
                   - "ec2:Describe*"
                   - "autoscaling:Describe*"
                   - "autoscaling:DescribePolicies"
@@ -142,181 +112,88 @@ Resources:
                   - "eks:List*"
                   - "lambda:Get*"
                   - "lambda:List*"
-
-                  # ==========================================
-                  # 🐳 ECS (CONTAINERS)
-                  # ==========================================
+                  # 🐳 ECS
                   - "ecs:Describe*"
                   - "ecs:List*"
-
-                  # ==========================================
                   # 🗄️ STORAGE E DATABASES
-                  # ==========================================
                   - "s3:Get*"
                   - "s3:List*"
                   - "rds:Describe*"
                   - "dynamodb:Describe*"
                   - "dynamodb:List*"
-
-                  # ==========================================
                   # 🔴 ELASTICACHE
-                  # ==========================================
                   - "elasticache:Describe*"
                   - "elasticache:List*"
-
-                  # ==========================================
                   # 📦 REDSHIFT
-                  # ==========================================
                   - "redshift:Describe*"
                   - "redshift:List*"
                   - "redshift:View*"
-
-                  # ==========================================
-                  # 📁 ELASTIC FILE SYSTEM (EFS)
-                  # ==========================================
+                  # 📁 EFS
                   - "elasticfilesystem:Describe*"
                   - "elasticfilesystem:List*"
-
-                  # ==========================================
-                  # 🔍 OPENSEARCH / ELASTICSEARCH
-                  # ==========================================
+                  # 🔍 OPENSEARCH
                   - "es:Describe*"
                   - "es:List*"
                   - "es:Get*"
-
-                  # ==========================================
                   # ⚖️ ELASTIC LOAD BALANCING
-                  # ==========================================
                   - "elasticloadbalancing:Describe*"
-
-                  # ==========================================
                   # 🛒 AWS MARKETPLACE
-                  # ==========================================
                   - "aws-marketplace:GetEntitlements"
                   - "aws-marketplace:ViewSubscriptions"
-
-                  # ==========================================
-                  # 🧊 GLACIER / ARCHIVAL STORAGE
-                  #    [v3] Custo de storage frio frequentemente
-                  #    invisível em análises de FinOps.
-                  # ==========================================
+                  # 🧊 GLACIER
                   - "glacier:Describe*"
                   - "glacier:List*"
                   - "glacier:GetVaultNotifications"
-
-                  # ==========================================
-                  # 🖥️ WORKSPACES E APPSTREAM (VDI/Desktop)
-                  #    [v3] Comum em enterprises — custo fixo
-                  #    mensal alto e frequentemente subutilizado.
-                  # ==========================================
+                  # 🖥️ WORKSPACES E APPSTREAM
                   - "workspaces:Describe*"
                   - "appstream:Describe*"
                   - "appstream:List*"
-
-                  # ==========================================
                   # 🔗 DIRECT CONNECT
-                  #    [v3] Custo de conectividade dedicada —
-                  #    porto fixo + transferência de dados.
-                  # ==========================================
                   - "directconnect:Describe*"
-
-                  # ==========================================
                   # 💾 AWS BACKUP
-                  #    [v3] Visibilidade de políticas, jobs e
-                  #    vaults de backup — custo recorrente de
-                  #    storage frequentemente negligenciado.
-                  # ==========================================
                   - "backup:Describe*"
                   - "backup:List*"
                   - "backup:Get*"
-
-                  # ==========================================
-                  # 🌐 CLOUDFRONT (CDN)
-                  #    [v3] Custo de transferência de dados e
-                  #    requests — essencial em ambientes com
-                  #    alto tráfego de conteúdo estático.
-                  # ==========================================
+                  # 🌐 CLOUDFRONT
                   - "cloudfront:Get*"
                   - "cloudfront:List*"
-
-                  # ==========================================
                   # 🚀 GLOBAL ACCELERATOR
-                  #    [v3] Custo fixo mensal alto — frequente-
-                  #    mente provisionado e esquecido.
-                  # ==========================================
                   - "globalaccelerator:Describe*"
                   - "globalaccelerator:List*"
-
-                  # ==========================================
-                  # 📨 MESSAGING (SQS / SNS / EVENTBRIDGE)
-                  #    [v3] Custo por request em escala pode
-                  #    ser significativo em arquiteturas event-
-                  #    driven sem controle de volume.
-                  # ==========================================
+                  # 📨 MESSAGING — SQS / SNS / EVENTBRIDGE
                   - "sqs:Get*"
                   - "sqs:List*"
                   - "sns:Get*"
                   - "sns:List*"
                   - "events:Describe*"
                   - "events:List*"
-
-                  # ==========================================
-                  # 🌊 STREAMING (KINESIS / FIREHOSE)
-                  #    [v3] Custo por shard-hora — shards ociosos
-                  #    ou superprovisionados são desperdício direto.
-                  # ==========================================
+                  # 🌊 STREAMING — KINESIS / FIREHOSE
                   - "kinesis:Describe*"
                   - "kinesis:List*"
                   - "firehose:Describe*"
                   - "firehose:List*"
-
-                  # ==========================================
-                  # 🤖 SAGEMAKER (ML/IA)
-                  #    [v3] Maior potencial de desperdício na AWS —
-                  #    notebooks e endpoints idle consomem muito.
-                  # ==========================================
+                  # 🤖 SAGEMAKER
                   - "sagemaker:Describe*"
                   - "sagemaker:List*"
-
-                  # ==========================================
-                  # 🔄 ORQUESTRAÇÃO (STEP FUNCTIONS / GLUE)
-                  #    [v3] Custo por execução — pipelines de
-                  #    dados mal dimensionados ou redundantes.
-                  # ==========================================
+                  # 🔄 ORQUESTRAÇÃO — STEP FUNCTIONS / GLUE
                   - "states:Describe*"
                   - "states:List*"
                   - "glue:Get*"
                   - "glue:List*"
-
-                  # ==========================================
                   # 🔀 TRANSFER FAMILY
-                  #    [v3] Custo de transferência de dados
-                  #    gerenciada (SFTP/FTP/FTPS endpoints).
-                  # ==========================================
                   - "transfer:Describe*"
                   - "transfer:List*"
-
-                  # ==========================================
                   # 🛡️ WAF E SHIELD
-                  #    [v3] Custo recorrente de segurança —
-                  #    Shield Advanced tem custo fixo elevado.
-                  # ==========================================
                   - "wafv2:Get*"
                   - "wafv2:List*"
                   - "shield:Describe*"
                   - "shield:List*"
-
-                  # ==========================================
-                  # 📊 MONITORAMENTO E METRICAS
-                  # ==========================================
+                  # 📊 MONITORAMENTO
                   - "cloudwatch:Get*"
                   - "cloudwatch:List*"
                   - "logs:Describe*"
                   - "logs:Get*"
-
-                  # ==========================================
                   # 🛡️ GOVERNANÇA E SEGURANÇA
-                  # ==========================================
                   - "config:Describe*"
                   - "config:Get*"
                   - "securityhub:Get*"
@@ -327,10 +204,7 @@ Resources:
                   - "servicequotas:Get*"
                   - "servicequotas:List*"
                   - "servicequotas:Describe*"
-
-                  # ==========================================
                   # 🧠 OTIMIZAÇÃO E SUPORTE
-                  # ==========================================
                   - "compute-optimizer:Get*"
                   - "compute-optimizer:Describe*"
                   - "compute-optimizer:Export*"
@@ -340,13 +214,9 @@ Resources:
                   - "trustedadvisor:View*"
                   - "support:Describe*"
                   - "servicecatalog:ListApplications"
-
                 Resource: "*"
 
-  # ============================================================
-  # 2. Custom Resource — valida Management Account,
-  #    habilita Trusted Access e resolve o Root ID.
-  # ============================================================
+  # ── 2. Custom Resource — valida Management Account e habilita Trusted Access ──
   EnableTrustedAccess:
     Type: Custom::EnableTrustedAccess
     DependsOn: RealCloudCrossAccountRole
@@ -357,230 +227,10 @@ Resources:
       ExternalId: !Ref ExternalId
       Action: "EnableTrustedAccess"
 
-  # ============================================================
-  # 3. StackSet — propaga o role para todas as member accounts
-  # ============================================================
-  RealCloudOrgStackSet:
-    Type: AWS::CloudFormation::StackSet
-    DependsOn: EnableTrustedAccess
-    Properties:
-      StackSetName: RealCloud-CrossAccount-MemberAccounts
-      Description: "Deploya o RealCloud Cross-Account Role em todas as contas da Organization"
-      PermissionModel: SERVICE_MANAGED
-      AutoDeployment:
-        Enabled: true
-        RetainStacksOnAccountRemoval: false
-      Capabilities:
-        - CAPABILITY_NAMED_IAM
-      TemplateBody: |
-        Description: RealCloud Cross-Account Role — Member Account
-        Resources:
-          RealCloudCrossAccountRole:
-            Type: AWS::IAM::Role
-            Properties:
-              RoleName: RealCloudCrossAccount
-              Path: "/"
-              AssumeRolePolicyDocument:
-                Version: "2012-10-17"
-                Statement:
-                  - Effect: Allow
-                    Action: sts:AssumeRole
-                    Principal:
-                      AWS: "arn:aws:iam::835950600873:root"
-              Policies:
-                - PolicyName: Billing-Access-RealCloud
-                  PolicyDocument:
-                    Version: "2012-10-17"
-                    Statement:
-                      - Effect: Allow
-                        Action:
-                          # 💰 FATURAMENTO E CUSTOS
-                          - "account:GetAccountInformation"
-                          - "account:ListRegions"
-                          - "billing:Get*"
-                          - "billing:List*"
-                          - "budgets:ViewBudget"
-                          - "budgets:Describe*"
-                          - "cur:Get*"
-                          - "cur:Describe*"
-                          - "ce:Get*"
-                          - "ce:Describe*"
-                          - "ce:List*"
-                          - "invoicing:Get*"
-                          - "invoicing:List*"
-                          - "payments:Get*"
-                          - "payments:List*"
-                          - "purchase-orders:GetPurchaseOrder"
-                          - "purchase-orders:ViewPurchaseOrders"
-                          - "pricing:DescribeServices"
-                          - "freetier:GetFreeTier*"
-                          - "savingsplans:Describe*"
-                          - "savingsplans:List*"
-                          # 🏷️ COST ALLOCATION TAGS E CATEGORIAS
-                          - "ce:ListCostAllocationTags"
-                          - "ce:ListCostCategoryDefinitions"
-                          - "ce:GetTags"
-                          # 🚨 ANOMALY DETECTION
-                          - "ce:GetAnomalies"
-                          - "ce:GetAnomalyMonitors"
-                          - "ce:GetAnomalySubscriptions"
-                          # 🛒 RESERVED INSTANCES
-                          - "ec2:DescribeReservedInstances"
-                          - "ec2:DescribeReservedInstancesOfferings"
-                          - "rds:DescribeReservedDBInstances"
-                          - "elasticache:DescribeReservedCacheNodes"
-                          - "elasticache:DescribeReservedCacheNodesOfferings"
-                          # 🏢 ORGANIZATIONS
-                          - "organizations:Describe*"
-                          - "organizations:List*"
-                          # ⚙️ COMPUTAÇÃO
-                          - "ec2:Describe*"
-                          - "autoscaling:Describe*"
-                          - "autoscaling:DescribePolicies"
-                          - "autoscaling:DescribeScalingActivities"
-                          - "eks:Describe*"
-                          - "eks:List*"
-                          - "lambda:Get*"
-                          - "lambda:List*"
-                          # 🐳 ECS
-                          - "ecs:Describe*"
-                          - "ecs:List*"
-                          # 🗄️ STORAGE E DATABASES
-                          - "s3:Get*"
-                          - "s3:List*"
-                          - "rds:Describe*"
-                          - "dynamodb:Describe*"
-                          - "dynamodb:List*"
-                          # 🔴 ELASTICACHE
-                          - "elasticache:Describe*"
-                          - "elasticache:List*"
-                          # 📦 REDSHIFT
-                          - "redshift:Describe*"
-                          - "redshift:List*"
-                          - "redshift:View*"
-                          # 📁 EFS
-                          - "elasticfilesystem:Describe*"
-                          - "elasticfilesystem:List*"
-                          # 🔍 OPENSEARCH
-                          - "es:Describe*"
-                          - "es:List*"
-                          - "es:Get*"
-                          # ⚖️ ELASTIC LOAD BALANCING
-                          - "elasticloadbalancing:Describe*"
-                          # 🛒 AWS MARKETPLACE
-                          - "aws-marketplace:GetEntitlements"
-                          - "aws-marketplace:ViewSubscriptions"
-                          # 🧊 GLACIER / ARCHIVAL STORAGE [v3]
-                          - "glacier:Describe*"
-                          - "glacier:List*"
-                          - "glacier:GetVaultNotifications"
-                          # 🖥️ WORKSPACES E APPSTREAM [v3]
-                          - "workspaces:Describe*"
-                          - "appstream:Describe*"
-                          - "appstream:List*"
-                          # 🔗 DIRECT CONNECT [v3]
-                          - "directconnect:Describe*"
-                          # 💾 AWS BACKUP [v3]
-                          - "backup:Describe*"
-                          - "backup:List*"
-                          - "backup:Get*"
-                          # 🌐 CLOUDFRONT [v3]
-                          - "cloudfront:Get*"
-                          - "cloudfront:List*"
-                          # 🚀 GLOBAL ACCELERATOR [v3]
-                          - "globalaccelerator:Describe*"
-                          - "globalaccelerator:List*"
-                          # 📨 MESSAGING — SQS / SNS / EVENTBRIDGE [v3]
-                          - "sqs:Get*"
-                          - "sqs:List*"
-                          - "sns:Get*"
-                          - "sns:List*"
-                          - "events:Describe*"
-                          - "events:List*"
-                          # 🌊 STREAMING — KINESIS / FIREHOSE [v3]
-                          - "kinesis:Describe*"
-                          - "kinesis:List*"
-                          - "firehose:Describe*"
-                          - "firehose:List*"
-                          # 🤖 SAGEMAKER [v3]
-                          - "sagemaker:Describe*"
-                          - "sagemaker:List*"
-                          # 🔄 ORQUESTRAÇÃO — STEP FUNCTIONS / GLUE [v3]
-                          - "states:Describe*"
-                          - "states:List*"
-                          - "glue:Get*"
-                          - "glue:List*"
-                          # 🔀 TRANSFER FAMILY [v3]
-                          - "transfer:Describe*"
-                          - "transfer:List*"
-                          # 🛡️ WAF E SHIELD [v3]
-                          - "wafv2:Get*"
-                          - "wafv2:List*"
-                          - "shield:Describe*"
-                          - "shield:List*"
-                          # 📊 MONITORAMENTO
-                          - "cloudwatch:Get*"
-                          - "cloudwatch:List*"
-                          - "logs:Describe*"
-                          - "logs:Get*"
-                          # 🛡️ GOVERNANÇA
-                          - "config:Describe*"
-                          - "config:Get*"
-                          - "securityhub:Get*"
-                          - "securityhub:Describe*"
-                          - "inspector2:List*"
-                          - "inspector2:Get*"
-                          - "tag:Get*"
-                          - "servicequotas:Get*"
-                          - "servicequotas:List*"
-                          - "servicequotas:Describe*"
-                          # 🧠 OTIMIZAÇÃO
-                          - "compute-optimizer:Get*"
-                          - "compute-optimizer:Describe*"
-                          - "compute-optimizer:Export*"
-                          - "cost-optimization-hub:List*"
-                          - "trustedadvisor:Describe*"
-                          - "trustedadvisor:List*"
-                          - "trustedadvisor:View*"
-                          - "support:Describe*"
-                          - "servicecatalog:ListApplications"
-                          - "bcm-pricing-calculator:Get*"
-                          - "bcm-pricing-calculator:List*"
-                          - "bcm-recommended-actions:List*"
-                          - "mapcredits:List*"
-                          - "consolidatedbilling:GetAccountBillingRole"
-                          - "consolidatedbilling:ListLinkedAccounts"
-                        Resource: "*"
-          NotifyMemberOnboarding:
-            Type: Custom::NotifyCrossAccount
-            DependsOn: RealCloudCrossAccountRole
-            Properties:
-              ServiceToken: arn:aws:lambda:us-east-1:835950600873:function:cross-account
-              ClientAccountId: !Ref AWS::AccountId
-              RoleName: RealCloudCrossAccount
-              ExternalId: ""
-              ClientName: !Ref AWS::AccountId
-              StackName: !Ref AWS::StackName
-              IsOrgMember: "true"
-
-      StackInstancesGroup:
-        - DeploymentTargets:
-            OrganizationalUnitIds:
-              - !GetAtt EnableTrustedAccess.RootId
-          Regions:
-            - us-east-1
-
-      OperationPreferences:
-        FailureTolerancePercentage: 20
-        MaxConcurrentPercentage: 50
-        RegionConcurrencyType: PARALLEL
-
-  # ============================================================
-  # 4. Custom Resource — salva dados da Org no DynamoDB
-  # ============================================================
+  # ── 3. Custom Resource — registra a Management Account no DynamoDB ──
   NotifyOrgOnboarding:
     Type: Custom::NotifyCrossAccount
-    DependsOn: RealCloudOrgStackSet
+    DependsOn: EnableTrustedAccess
     Properties:
       ServiceToken: arn:aws:lambda:us-east-1:835950600873:function:cross-account
       ClientAccountId: !Ref AWS::AccountId
@@ -588,18 +238,11 @@ Resources:
       ExternalId: !Ref ExternalId
       ClientName: !Ref ClientName
       StackName: !Ref AWS::StackName
-      IsManagementAccount: "true"
 
 Outputs:
   ManagementAccountRoleArn:
     Description: "ARN do role criado na Management Account"
     Value: !GetAtt RealCloudCrossAccountRole.Arn
-  OrgRootId:
-    Description: "Root ID da Organization (resolvido automaticamente)"
-    Value: !GetAtt EnableTrustedAccess.RootId
-  StackSetName:
-    Description: "Nome do StackSet propagado para member accounts"
-    Value: !Ref RealCloudOrgStackSet
   CrossAccountLink:
     Description: "Link para assumir o role na Management Account"
     Value: !Sub "https://signin.aws.amazon.com/switchrole?roleName=RealCloudCrossAccount&account=${AWS::AccountId}"
