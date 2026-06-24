@@ -23,45 +23,101 @@
  O fluxo acima descreve como a RealCloud habilita, de forma segura e automatizada, o acesso cross-account às informações de billing a conta do cliente, utilizando serviços nativos AWS. A solução é baseada em CloudFormation, IAM Roles, Lambda, DynamoDB e S3. 
  
 ### 1.3. Componentes:
-Conta RealCloud:
-- Amazon S3: Hospeda o template CloudFormation (YAML/JSON) que o cliente executa para realizar o provisionamento.
-- AWS Lambda: Atua como Custom Resource do CloudFormation. 
-Valida que a conta é a Management Account da Organization — falha imediatamente se for standalone ou member account. 
-Habilita o Trusted Access para StackSets via organizations:EnableAWSServiceAccess. 
-Resolve o Root ID real da Organization via organizations:ListRoots. 
-Registra Management Account e Member Accounts no DynamoDB. 
-Processa notificações de exclusão de stacks (offboarding). 
-- Amazon DynamoDB: Armazena metadados de todas as contas integradas: Management Account e Member Accounts. 
-Campos: account_id, client_name, role_name, external_id, org_id, root_id, member_count, source, cross_account_link, status, updated_at. 
+1.3. Componentes:
+# - Conta RealCloud
+ - Amazon S3:
+ Hospeda o template CloudFormation (YAML) disponibilizado ao cliente para realizar a integração.
+ - AWS Lambda:
+ Atua como Custom Resource do CloudFormation.
+ Responsabilidades:
+ Assume o role criado na conta do cliente.
+ Valida que a conta pertence a uma AWS Organization.
+ Garante que a execução está sendo realizada na Management Account, falhando caso seja uma Member Account.
+ Habilita o Trusted Access do CloudFormation StackSets por meio de organizations:EnableAWSServiceAccess.
+ Ativa o Organizations Access do CloudFormation via ActivateOrganizationsAccess.
+ Obtém o Root ID da Organization através de organizations:ListRoots.
+ Registra apenas a Management Account no DynamoDB.
+ Processa eventos de exclusão (offboarding), removendo o registro correspondente do DynamoDB.
 
-Conta do Cliente:
-- AWS CloudFormation: Executa o template fornecido pela RealCloud.
-- RealCloudCrossAccountRole: IAM Role criada na Management Account que autoriza o acesso cross-account da RealCloud. 
-Inclui permissão organizations:EnableAWSServiceAccess para que a Lambda possa ativar o Trusted Access. 
-- Custom Resource EnableTrustedAccess: 
-Invoca a Lambda para validar que é Management Account, ativar Trusted Access e resolver o Root ID da Organization. 
-Retorna o Root Id como output para o StackSet usar automaticamente. 
-- StackSet SERVICE_MANAGED (RealCloud-CrossAccount-MemberAccounts):  
-Propaga o RealCloudCrossAccountRole para todas as member accounts da Organization. 
-AutoDeployment habilitado: novas contas que entrem na Org recebem o role automaticamente. 
-RetainStacksOnAccountRemoval: false — ao sair da Org, o role é removido da member account. 
-- Custom Resource NotifyOrgOnboarding:  
-Invoca a Lambda ao final do deploy para registrar a Management Account e listar todas as member accounts no DynamoDB. 
+ - Amazon DynamoDB:
+ Armazena os metadados das organizações integradas.
+ Campos armazenados:
+ account_id
+ client_name
+ role_name
+ external_id
+ stack_name
+ cross_account_link
+ is_management_account
+ org_id
+ root_id
+ status
+ updated_at
 
-Member Accounts (via StackSet):
-
-RealCloudCrossAccountRole: 
-Mesma role de acesso, porém sem permissões de organizations:EnableAWSServiceAccess (desnecessárias em member accounts). 
-Custom Resource NotifyMemberOnboarding: 
-Notifica a Lambda com IsOrgMember: true para registrar a member account no DynamoDB com source: stackset. 
+ A tabela armazena exclusivamente informações da Management Account. Nenhuma Member Account é registrada.
+# - Conta do Cliente
+ - AWS CloudFormation:
+ Executa o template fornecido pela RealCloud.
+ - RealCloudCrossAccountRole:
+ Role IAM criada na Management Account.
+ Permite que a RealCloud assuma acesso cross-account e consulte informações relacionadas a:
+ Billing e Cost Explorer;
+ Organizations;
+ Compute;
+ Storage;
+ Databases;
+ Monitoramento;
+ Serviços de otimização;
+ Recursos utilizados pelo ambiente.
+ - Custom Resource EnableTrustedAccess:
+ Invoca a Lambda da RealCloud para:
+ Assumir o role recém-criado;
+ Validar que a conta é a Management Account;
+ Garantir que a conta faz parte de uma AWS Organization;
+ Habilitar o Trusted Access do CloudFormation StackSets;
+ Ativar o Organizations Access do CloudFormation;
+ Resolver o Root ID da Organization.
+ - Custom Resource NotifyOrgOnboarding:
+ Executado ao final do deploy.
+ Invoca a Lambda da RealCloud para registrar no DynamoDB os metadados da Management Account, incluindo:
+ Account ID;
+ Nome do cliente;
+ External ID;
+ Organization ID;
+ Root ID;
+ Link de acesso cross-account;
+ Status da integração.
+ 
 
 ### 1.4. Fluxo de Funcionamento da Arquitetura:
-1. EXECUÇÃO DO TEMPLATE: O cliente abre o link do template CloudFormation hospedado no bucket S3 da RealCloud. O CloudFormation inicia o deploy na Management Account. 
-2. CRIAÇÃO DO IAM ROLE: O CloudFormation cria o RealCloudCrossAccountRole na Management Account com todas as permissões necessárias, incluindo organizations:EnableAWSServiceAccess. 
-3. VALIDAÇÃO E TRUSTED ACCESS (EnableTrustedAccess): A Lambda é invocada via Custom Resource. Ela assume o role, valida que a conta é a Management Account da Organization, habilita o Trusted Access para StackSets e resolve o Root ID real. 
-4. CRIAÇÃO DO STACKSET: Com o Trusted Access ativo e o Root ID resolvido, o CloudFormation cria o StackSet SERVICE_MANAGED que propaga o role para todas as member accounts da Organization. 
-5. DEPLOY NAS MEMBER ACCOUNTS: O StackSet instala o RealCloudCrossAccountRole em cada member account. Em cada instalação, a Lambda é notificada e registra a member account no DynamoDB com source: stackset. 
-6. REGISTRO DA MANAGEMENT ACCOUNT (NotifyOrgOnboarding): Ao final, a Lambda registra a Management Account no DynamoDB com org_id, root_id, member_count e demais metadados. 
+1. Execução do Template:
+ O cliente acessa o template CloudFormation hospedado no bucket S3 da RealCloud e realiza o deploy na Management Account da AWS Organization.
+2. Criação do IAM Role:
+ O CloudFormation cria o recurso RealCloudCrossAccountRole, que permitirá à RealCloud assumir acesso cross-account na conta do cliente.
+3. Validação da Management Account e Habilitação do Trusted Access:
+O recurso EnableTrustedAccess invoca a Lambda da RealCloud.
+A função:
+Assume o role recém-criado;
+Verifica se a conta pertence a uma AWS Organization;
+Garante que a conta é a Management Account;
+Habilita o Trusted Access do serviço CloudFormation StackSets;
+Ativa o Organizations Access do CloudFormation;
+Obtém o Root ID da Organization.
+ Caso a execução seja realizada em uma Member Account ou em uma conta standalone, o processo é interrompido.
+4. Registro da Organização:
+Após a validação, o recurso NotifyOrgOnboarding invoca novamente a Lambda.
+A função registra no DynamoDB os metadados da Management Account:
+Account ID;
+Client Name;
+Role Name;
+External ID;
+Stack Name;
+Organization ID;
+Root ID;
+Link de acesso cross-account;
+Timestamp da última atualização;
+Status da integração.
+
 
 ## 2 - Políticas de Acesso Cross-Account:
 
@@ -198,51 +254,49 @@ Permite identificar produtos e assinaturas adquiridos pelo AWS Marketplace.
 Forneça ao cliente a URL do template CloudFormation hospedado no S3
 A URL Executa o onboarding na Management Account e propaga automaticamente o acesso para todas as contas-membro da organização por meio de AWS CloudFormation StackSets.
 URL:
-https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https%3A%2F%2Frealcloudcrossaccount.s3.us-east-2.amazonaws.com%2FRealCloudCrossAccountClient.yml&stackName=RealCloud-CrossAccount-Client&param_ClientName=NOME_DO_CLIENTE
+https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https%3A%2F%2Frealcloudcrossaccount.s3.us-east-2.amazonaws.com%2FRealCloudCrossAccountClient.yml&stackName=RealCloud-CrossAccount-Management&param_ClientName=NOME_DO_CLIENTE
+
 
 
 ### 3.1. Execução da pilha
  O cliente será direcionado diretamente para a tela do CloudFormation com todos os parâmetros necessários já preenchidos. Será necessário apenas clicar em “Create Stack”.
 
 ### 3.2. Após a execução do CloudFormation:
- Assim que a pilha for criada com sucesso na conta do cliente, um processo automático (Custom Resource) enviará os dados para a nossa Conta de Services. A tabela DynamoDB será preenchida automaticamente com as seguintes informações:
+ Assim que a pilha for criada com sucesso na conta do cliente, um processo automático (Custom Resource) enviará os metadados da integração para a conta de Services da RealCloud. A tabela DynamoDB será preenchida automaticamente com as seguintes informações:
  
 - account_id: ID numérico da Management Account do cliente.
 - client_name: Nome identificador fornecido no parâmetro ClientName.
-- role_name: Nome da role criada para acesso cross-account (exemplo: RealCloudCrossAccount).
+- role_name: Nome da role criada para acesso cross-account (por exemplo, RealCloudCrossAccount).
 - external_id: External ID utilizado, caso tenha sido fornecido.
-- org_id: Identificador da AWS Organization (exemplo: o-abc123).
-- root_id: Root ID da AWS Organization (exemplo: r-ab12), obtido automaticamente.
-- member_count: Quantidade de member accounts ativas na AWS Organization.
-- cross_account_link: URL para realizar o switch role na Management Account.
-- status: Estado atual do registro, definido como active.
-- is_management_account: Indica que a conta registrada é a Management Account, com valor true.
-  
-Os registros das member accounts possuem o campo source, que pode assumir os seguintes valores:
-- stackset: indica que a conta foi provisionada por meio do AWS CloudFormation StackSets.
-- org_discovery: indica que a conta foi identificada automaticamente durante o processo de descoberta da AWS Organization.
+- stack_name: Nome da stack do CloudFormation utilizada durante a implantação.
+- org_id: Identificador da AWS Organization (por exemplo, o-abc123).
+- root_id: Root ID da AWS Organization (por exemplo, r-ab12), obtido automaticamente.
+- cross_account_link: URL para realizar o Switch Role na Management Account.
+- status: Estado atual da integração, definido como active.
+- is_management_account: Indica que o registro corresponde à Management Account, com valor true.
+- updated_at: Data e hora da última atualização do registro.
+
   
 ### 3.3. Acesso à Conta do Cliente
  Com o registro criado no DynamoDB, você já poderá realizar o "switch role" (salto) para a conta do cliente utilizando o link gerado na coluna cross_account_link.
  
 ### 3.4. Offboarding
- Se o cliente desejar revogar o acesso, basta ele deletar a Stack no CloudFormation. Esse processo garante segurança total para ambas as partes:
-
-1. Remoção do Role: O RealCloudCrossAccountRole é excluído da Management Account. 
-2. Remoção nas Member Accounts: O StackSet remove o role de todas as member accounts automaticamente. 
-3. Limpeza do DynamoDB: A Lambda detecta o evento Delete, marca todas as member accounts da Org como org_removed e exclui o registro da Management Account. 
+ Caso a stack seja removida pelo cliente, o CloudFormation envia um evento de exclusão para a Lambda.
+A função remove do DynamoDB o registro correspondente à Management Account, concluindo o processo de offboarding.
 
 ## 4 - Atualizações:
 
 ---
 
- Quando uma nova versão do template estiver disponível no bucket S3 da RealCloud, o processo de atualização é simples: 
+  Quando uma nova versão do template estiver disponível no bucket S3 da RealCloud, o processo de atualização é simples: 
 Abra o link do template no CloudFormation. 
-No CloudFormation, selecione a stack existente e clique em Update. 
-Confirme a atualização — o CloudFormation aplicará apenas as mudanças necessárias. 
-O IAM Role e as permissões serão ajustados automaticamente, sem impacto na operação. 
 
-O StackSet das member accounts é atualizado automaticamente quando a Management Account recebe a atualização do template.  
+1. No CloudFormation, selecione a stack existente e clique em Update. 
+
+2. Confirme a atualização — o CloudFormation aplicará apenas as mudanças necessárias. 
+
+3. O IAM Role e as permissões serão ajustados automaticamente, sem impacto na operação. 
+
 
 
 ## 5 - Logs:
