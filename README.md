@@ -33,8 +33,6 @@
  Assume o role criado na conta do cliente.
  Valida que a conta pertence a uma AWS Organization.
  Garante que a execução está sendo realizada na Management Account, falhando caso seja uma Member Account.
- Habilita o Trusted Access do CloudFormation StackSets por meio de organizations:EnableAWSServiceAccess.
- Ativa o Organizations Access do CloudFormation via ActivateOrganizationsAccess.
  Obtém o Root ID da Organization através de organizations:ListRoots.
  Registra apenas a Management Account no DynamoDB.
  Processa eventos de exclusão (offboarding), removendo o registro correspondente do DynamoDB.
@@ -58,6 +56,7 @@
 # - Conta do Cliente
  - AWS CloudFormation:
  Executa o template fornecido pela RealCloud.
+
  - RealCloudCrossAccountRole:
  Role IAM criada na Management Account.
  Permite que a RealCloud assuma acesso cross-account e consulte informações relacionadas a:
@@ -69,14 +68,7 @@
  Monitoramento;
  Serviços de otimização;
  Recursos utilizados pelo ambiente.
- - Custom Resource EnableTrustedAccess:
- Invoca a Lambda da RealCloud para:
- Assumir o role recém-criado;
- Validar que a conta é a Management Account;
- Garantir que a conta faz parte de uma AWS Organization;
- Habilitar o Trusted Access do CloudFormation StackSets;
- Ativar o Organizations Access do CloudFormation;
- Resolver o Root ID da Organization.
+
  - Custom Resource NotifyOrgOnboarding:
  Executado ao final do deploy.
  Invoca a Lambda da RealCloud para registrar no DynamoDB os metadados da Management Account, incluindo:
@@ -94,16 +86,6 @@
  O cliente acessa o template CloudFormation hospedado no bucket S3 da RealCloud e realiza o deploy na Management Account da AWS Organization.
 2. Criação do IAM Role:
  O CloudFormation cria o recurso RealCloudCrossAccountRole, que permitirá à RealCloud assumir acesso cross-account na conta do cliente.
-3. Validação da Management Account e Habilitação do Trusted Access:
-O recurso EnableTrustedAccess invoca a Lambda da RealCloud.
-A função:
-Assume o role recém-criado;
-Verifica se a conta pertence a uma AWS Organization;
-Garante que a conta é a Management Account;
-Habilita o Trusted Access do serviço CloudFormation StackSets;
-Ativa o Organizations Access do CloudFormation;
-Obtém o Root ID da Organization.
- Caso a execução seja realizada em uma Member Account ou em uma conta standalone, o processo é interrompido.
 4. Registro da Organização:
 Após a validação, o recurso NotifyOrgOnboarding invoca novamente a Lambda.
 A função registra no DynamoDB os metadados da Management Account:
@@ -130,83 +112,83 @@ A role concede acesso somente leitura (read-only) e controlado a serviços relac
 
 ### 2.1. Faturamento e Custos (Billing & Cost Management):
 
-account:GetAccountInformation, account:ListRegions — Informações gerais da conta e regiões habilitadas.
-billing:GetBillingData, billing:GetBillingDetails, billing:GetBillingNotifications, billing:GetBillingPreferences, billing:GetContractInformation, billing:GetCredits, billing:GetIAMAccessPreference, billing:ListBillingViews — Dados de faturamento, contratos e preferências.
-budgets:ViewBudget, budgets:DescribeBudgets, budgets:DescribeBudgetActionsForBudget — Orçamentos configurados e acompanhamento de gastos.
-cur:GetUsageReport, cur:DescribeReportDefinitions — Cost and Usage Reports (CUR).
-ce:GetCostAndUsage, ce:GetCostAndUsageWithResources, ce:GetCostForecast, ce:GetDimensionValues, ce:GetUsageForecast, ce:GetTags, ce:DescribeCostCategoryDefinition, ce:ListCostCategoryDefinitions — Cost Explorer, - - análises históricas e previsões de custos.
-ce:GetReservationCoverage, ce:GetReservationPurchaseRecommendation, ce:GetReservationUtilization — Cobertura e utilização de Reserved Instances.
-ce:GetSavingsPlansCoverage, ce:GetSavingsPlansUtilization, ce:GetSavingsPlansUtilizationDetails, ce:GetSavingsPlansPurchaseRecommendation — Cobertura e utilização de Savings Plans.
-invoicing:GetInvoiceEmailDeliveryPreferences, invoicing:GetInvoicePDF, invoicing:ListInvoiceSummaries — Faturas emitidas e histórico.
-payments:GetPaymentInstrument, payments:ListPaymentPreferences — Histórico e preferências de pagamento.
-purchase-orders:GetPurchaseOrder, purchase-orders:ViewPurchaseOrders — Ordens de compra.
-pricing:DescribeServices, pricing:GetAttributeValues, pricing:GetProducts — Consulta à tabela oficial de preços da AWS.
-freetier:GetFreeTierAlertThreshold, freetier:GetFreeTierUsage — Monitoramento do Free Tier.
-consolidatedbilling:GetAccountBillingRole, consolidatedbilling:ListLinkedAccounts — Faturamento consolidado em ambientes AWS Organizations.
-savingsplans:DescribeSavingsPlans, savingsplans:DescribeSavingsPlansOfferingRates, savingsplans:DescribeSavingsPlansOfferings, savingsplans:ListTagsForResource — Savings Plans ativos e ofertas disponíveis.
-mapcredits:ListCredits — Créditos do programa AWS Migration Acceleration Program (MAP).
+- account:GetAccountInformation, account:ListRegions — Informações gerais da conta e regiões habilitadas.
+- billing:GetBillingData, billing:GetBillingDetails, billing:GetBillingNotifications, billing:GetBillingPreferences, billing:GetContractInformation, billing:GetCredits, billing:GetIAMAccessPreference, billing:ListBillingViews — Dados de faturamento, contratos e preferências.
+- budgets:ViewBudget, budgets:DescribeBudgets, budgets:DescribeBudgetActionsForBudget — Orçamentos configurados e acompanhamento de gastos.
+- cur:GetUsageReport, cur:DescribeReportDefinitions — Cost and Usage Reports (CUR).
+- ce:GetCostAndUsage, ce:GetCostAndUsageWithResources, ce:GetCostForecast, ce:GetDimensionValues, ce:GetUsageForecast, ce:GetTags, ce:DescribeCostCategoryDefinition, ce:ListCostCategoryDefinitions — Cost Explorer,  análises históricas e previsões de custos.
+- ce:GetReservationCoverage, ce:GetReservationPurchaseRecommendation, ce:GetReservationUtilization — Cobertura e utilização de Reserved Instances.
+- ce:GetSavingsPlansCoverage, ce:GetSavingsPlansUtilization, ce:GetSavingsPlansUtilizationDetails, ce:GetSavingsPlansPurchaseRecommendation — Cobertura e utilização de Savings Plans.
+- invoicing:GetInvoiceEmailDeliveryPreferences, invoicing:GetInvoicePDF, invoicing:ListInvoiceSummaries — Faturas emitidas e histórico.
+- payments:GetPaymentInstrument, payments:ListPaymentPreferences — Histórico e preferências de pagamento.
+- purchase-orders:GetPurchaseOrder, purchase-orders:ViewPurchaseOrders — Ordens de compra.
+- pricing:DescribeServices, pricing:GetAttributeValues, pricing:GetProducts — Consulta à tabela oficial de preços da AWS.
+- freetier:GetFreeTierAlertThreshold, freetier:GetFreeTierUsage — Monitoramento do Free Tier.
+- consolidatedbilling:GetAccountBillingRole, consolidatedbilling:ListLinkedAccounts — Faturamento consolidado em ambientes AWS Organizations.
+- savingsplans:DescribeSavingsPlans, savingsplans:DescribeSavingsPlansOfferingRates, savingsplans:DescribeSavingsPlansOfferings, savingsplans:ListTagsForResource — Savings Plans ativos e ofertas disponíveis.
+- mapcredits:ListCredits — Créditos do programa AWS Migration Acceleration Program (MAP).
 
 ### 2.2. FinOps, Planejamento e Recomendações:
 
-bcm-pricing-calculator:GetBillingView, bcm-pricing-calculator:GetWorkload, bcm-pricing-calculator:ListBillingViewSources, bcm-pricing-calculator:ListWorkloads — Calculadora de preços e projeções financeiras.
-bcm-recommended-actions:ListRecommendedActions — Recomendações financeiras da AWS.
-cost-optimization-hub:ListRecommendations, cost-optimization-hub:ListRecommendationSummaries — Hub centralizado de otimização de custos.
+- bcm-pricing-calculator:GetBillingView, bcm-pricing-calculator:GetWorkload, bcm-pricing-calculator:ListBillingViewSources, bcm-pricing-calculator:ListWorkloads — Calculadora de preços e projeções financeiras.
+- bcm-recommended-actions:ListRecommendedActions — Recomendações financeiras da AWS.
+- cost-optimization-hub:ListRecommendations, cost-optimization-hub:ListRecommendationSummaries — Hub centralizado de otimização de custos.
 
 ### 2.3. Cost Allocation, Categorias e Anomaly Detection:
 
-ce:ListCostAllocationTags, ce:GetTags — Tags utilizadas para alocação de custos.
-ce:ListCostCategoryDefinitions — Categorias de custo definidas na conta.
-ce:GetAnomalies — Detecção de anomalias de custos.
-ce:GetAnomalyMonitors — Monitores de anomalias configurados.
-ce:GetAnomalySubscriptions — Configurações de notificações de anomalias.
+- ce:ListCostAllocationTags, ce:GetTags — Tags utilizadas para alocação de custos.
+- ce:ListCostCategoryDefinitions — Categorias de custo definidas na conta.
+- ce:GetAnomalies — Detecção de anomalias de custos.
+- ce:GetAnomalyMonitors — Monitores de anomalias configurados.
+- ce:GetAnomalySubscriptions — Configurações de notificações de anomalias.
 
 ### 2.4. Reserved Instances e Savings:
 
-ec2:DescribeReservedInstances, ec2:DescribeReservedInstancesOfferings — Reserved Instances EC2 ativas e oportunidades de compra.
-rds:DescribeReservedDBInstances, rds:DescribeReservedDBInstancesOfferings — Reserved Instances RDS.
-elasticache:DescribeReservedCacheNodes, elasticache:DescribeReservedCacheNodesOfferings — Reserved Instances ElastiCache.
-redshift:DescribeReservedNodes, redshift:DescribeReservedNodeOfferings — Reserved Instances Redshift.
+- ec2:DescribeReservedInstances, ec2:DescribeReservedInstancesOfferings — Reserved Instances EC2 ativas e oportunidades de compra.
+- rds:DescribeReservedDBInstances, rds:DescribeReservedDBInstancesOfferings — Reserved Instances RDS.
+- elasticache:DescribeReservedCacheNodes, elasticache:DescribeReservedCacheNodesOfferings — Reserved Instances ElastiCache.
+- redshift:DescribeReservedNodes, redshift:DescribeReservedNodeOfferings — Reserved Instances Redshift.
 
 Essas permissões permitem identificar reservas existentes e oportunidades de otimização financeira.
 
 ### 2.5. Computação, Containers e Escalabilidade:
 
-ec2:DescribeInstances, ec2:DescribeInstanceTypes, ec2:DescribeInstanceStatus, ec2:DescribeRegions — Inventário de instâncias EC2.
-ec2:DescribeVolumes, ec2:DescribeSnapshots, ec2:DescribeImages — Volumes EBS, snapshots e imagens.
-ec2:DescribeAddresses, ec2:DescribeNatGateways, ec2:DescribeVpcs, ec2:DescribeSubnets — Recursos de rede associados a custos.
-autoscaling:DescribeAutoScalingGroups, autoscaling:DescribePolicies, autoscaling:DescribeScalingActivities — Auto Scaling Groups e políticas.
-lambda:ListFunctions, lambda:GetFunction, lambda:GetFunctionConcurrency, lambda:ListTags — AWS Lambda.
-eks:DescribeCluster, eks:ListClusters, eks:ListNodegroups, eks:DescribeNodegroup — Clusters Amazon EKS.
-ecs:DescribeClusters, ecs:DescribeServices, ecs:DescribeTaskDefinition, ecs:ListClusters, ecs:ListServices, ecs:ListTaskDefinitions — Clusters e serviços Amazon ECS.
+- ec2:DescribeInstances, ec2:DescribeInstanceTypes, ec2:DescribeInstanceStatus, ec2:DescribeRegions — Inventário de instâncias EC2.
+- ec2:DescribeVolumes, ec2:DescribeSnapshots, ec2:DescribeImages — Volumes EBS, snapshots e imagens.
+- ec2:DescribeAddresses, ec2:DescribeNatGateways, ec2:DescribeVpcs, ec2:DescribeSubnets — Recursos de rede associados a custos.
+- autoscaling:DescribeAutoScalingGroups, autoscaling:DescribePolicies, autoscaling:DescribeScalingActivities — Auto Scaling Groups e políticas.
+- lambda:ListFunctions, lambda:GetFunction, lambda:GetFunctionConcurrency, lambda:ListTags — AWS Lambda.
+- eks:DescribeCluster, eks:ListClusters, eks:ListNodegroups, eks:DescribeNodegroup — Clusters Amazon EKS.
+- ecs:DescribeClusters, ecs:DescribeServices, ecs:DescribeTaskDefinition, ecs:ListClusters, ecs:ListServices, ecs:ListTaskDefinitions — Clusters e serviços Amazon ECS.
 
 ### 2.6. Armazenamento e Bancos de Dados:
 
-rds:DescribeDBInstances, rds:DescribeDBClusters, rds:DescribeDBSnapshots, rds:ListTagsForResource — Amazon RDS.
-dynamodb:DescribeTable, dynamodb:ListTables, dynamodb:ListTagsOfResource — Amazon DynamoDB.
-elasticache:DescribeCacheClusters, elasticache:ListTagsForResource — Amazon ElastiCache.
-redshift:DescribeClusters, redshift:DescribeTags — Amazon Redshift.
-elasticfilesystem:DescribeFileSystems, elasticfilesystem:DescribeAccessPoints, elasticfilesystem:ListTagsForResource — Amazon EFS.
-s3:ListAllMyBuckets, s3:GetBucketLocation, s3:GetBucketTagging, s3:GetBucketVersioning, s3:GetBucketRequestPayment, s3:GetLifecycleConfiguration, s3:GetIntelligentTieringConfiguration, s3:GetStorageLensConfiguration, s3:GetStorageLensDashboard, s3:GetMetricsConfiguration — Metadados e configurações dos buckets S3, sem acesso ao conteúdo dos objetos.
+- rds:DescribeDBInstances, rds:DescribeDBClusters, rds:DescribeDBSnapshots, rds:ListTagsForResource — Amazon RDS.
+- dynamodb:DescribeTable, dynamodb:ListTables, dynamodb:ListTagsOfResource — Amazon DynamoDB.
+- elasticache:DescribeCacheClusters, elasticache:ListTagsForResource — Amazon ElastiCache.
+- redshift:DescribeClusters, redshift:DescribeTags — Amazon Redshift.
+- elasticfilesystem:DescribeFileSystems, elasticfilesystem:DescribeAccessPoints, elasticfilesystem:ListTagsForResource — Amazon EFS.
+- s3:ListAllMyBuckets, s3:GetBucketLocation, s3:GetBucketTagging, s3:GetBucketVersioning, s3:GetBucketRequestPayment, s3:GetLifecycleConfiguration, s3:GetIntelligentTieringConfiguration, s3:GetStorageLensConfiguration, - s3:GetStorageLensDashboard, s3:GetMetricsConfiguration — Metadados e configurações dos buckets S3, sem acesso ao conteúdo dos objetos.
 
 ### 2.7. Monitoramento e Observabilidade:
 
-cloudwatch:GetMetricData, cloudwatch:GetMetricStatistics — Métricas históricas de utilização (CPU, memória, rede etc.).
-cloudwatch:ListMetrics — Métricas disponíveis.
-cloudwatch:DescribeAlarms — Alarmes configurados.
+- cloudwatch:GetMetricData, cloudwatch:GetMetricStatistics — Métricas históricas de utilização (CPU, memória, rede etc.).
+- cloudwatch:ListMetrics — Métricas disponíveis.
+- cloudwatch:DescribeAlarms — Alarmes configurados.
 
 Essas permissões são utilizadas para análise de utilização e suporte a recomendações de rightsizing, sem acesso a logs ou conteúdo das aplicações.
 
 ### 2.8. Otimização e Recomendações:
 
-compute-optimizer:GetEC2InstanceRecommendations, compute-optimizer:GetEC2RecommendationProjectedMetrics — Recomendações para EC2.
-compute-optimizer:GetECSServiceRecommendations — Recomendações para ECS.
-compute-optimizer:GetLambdaFunctionRecommendations — Recomendações para Lambda.
-compute-optimizer:GetRDSInstanceRecommendations — Recomendações para RDS.
-compute-optimizer:GetEBSVolumeRecommendations — Recomendações para EBS.
-compute-optimizer:GetAutoScalingGroupRecommendations — Recomendações para Auto Scaling Groups.
-compute-optimizer:GetRecommendationSummaries, compute-optimizer:GetEnrollmentStatus — Sumários e status do Compute Optimizer.
-trustedadvisor:DescribeChecks, trustedadvisor:DescribeCheckResult, trustedadvisor:DescribeCheckSummaries, trustedadvisor:DescribeTrustedAdvisorCheckResult, trustedadvisor:DescribeTrustedAdvisorChecks, trustedadvisor:DescribeTrustedAdvisorCheckSummaries — Recomendações de desempenho, disponibilidade e economia.
-support:DescribeTrustedAdvisorCheckResult, support:DescribeTrustedAdvisorChecks, support:DescribeTrustedAdvisorCheckSummaries — Acesso às verificações do Trusted Advisor via API do AWS Support.
+- compute-optimizer:GetEC2InstanceRecommendations, compute-optimizer:GetEC2RecommendationProjectedMetrics — Recomendações para EC2.
+- compute-optimizer:GetECSServiceRecommendations — Recomendações para ECS.
+- compute-optimizer:GetLambdaFunctionRecommendations — Recomendações para Lambda.
+- compute-optimizer:GetRDSInstanceRecommendations — Recomendações para RDS.
+- compute-optimizer:GetEBSVolumeRecommendations — Recomendações para EBS.
+- compute-optimizer:GetAutoScalingGroupRecommendations — Recomendações para Auto Scaling Groups.
+- compute-optimizer:GetRecommendationSummaries, compute-optimizer:GetEnrollmentStatus — Sumários e status do Compute Optimizer.
+- trustedadvisor:DescribeChecks, trustedadvisor:DescribeCheckResult, trustedadvisor:DescribeCheckSummaries,trustedadvisor:DescribeTrustedAdvisorCheckResult,trustedadvisor:DescribeTrustedAdvisorChecks,trustedadvisor:DescribeTrustedAdvisorCheckSummaries — Recomendações de desempenho, disponibilidade e economia.
+- support:DescribeTrustedAdvisorCheckResult, support:DescribeTrustedAdvisorChecks, support:DescribeTrustedAdvisorCheckSummaries — Acesso às verificações do Trusted Advisor via API do AWS Support.
 
 ### 2.9. Organizations:
 
