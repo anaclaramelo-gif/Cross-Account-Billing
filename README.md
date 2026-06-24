@@ -128,7 +128,7 @@ Para habilitar a integração cross-account, é criada na conta do cliente a IAM
 A role concede acesso somente leitura (read-only) e controlado a serviços relacionados a custos, billing, consumo, otimização, governança, segurança e inventário da infraestrutura, sem permissões de alteração, exclusão ou provisionamento de recursos.
 
 
-2.1. Faturamento e Custos (Billing & Cost Management):
+### 2.1. Faturamento e Custos (Billing & Cost Management):
 
 account:GetAccountInformation, account:ListRegions — Informações gerais da conta e regiões habilitadas.
 billing:GetBillingData, billing:GetBillingDetails, billing:GetBillingNotifications, billing:GetBillingPreferences, billing:GetContractInformation, billing:GetCredits, billing:GetIAMAccessPreference, billing:ListBillingViews — Dados de faturamento, contratos e preferências.
@@ -146,18 +146,22 @@ consolidatedbilling:GetAccountBillingRole, consolidatedbilling:ListLinkedAccount
 savingsplans:DescribeSavingsPlans, savingsplans:DescribeSavingsPlansOfferingRates, savingsplans:DescribeSavingsPlansOfferings, savingsplans:ListTagsForResource — Savings Plans ativos e ofertas disponíveis.
 mapcredits:ListCredits — Créditos do programa AWS Migration Acceleration Program (MAP).
 
-2.2. FinOps, Planejamento e Recomendações:
+### 2.2. FinOps, Planejamento e Recomendações:
 
 bcm-pricing-calculator:GetBillingView, bcm-pricing-calculator:GetWorkload, bcm-pricing-calculator:ListBillingViewSources, bcm-pricing-calculator:ListWorkloads — Calculadora de preços e projeções financeiras.
 bcm-recommended-actions:ListRecommendedActions — Recomendações financeiras da AWS.
 cost-optimization-hub:ListRecommendations, cost-optimization-hub:ListRecommendationSummaries — Hub centralizado de otimização de custos.
-2.3. Cost Allocation, Categorias e Anomaly Detection
+
+### 2.3. Cost Allocation, Categorias e Anomaly Detection:
+
 ce:ListCostAllocationTags, ce:GetTags — Tags utilizadas para alocação de custos.
 ce:ListCostCategoryDefinitions — Categorias de custo definidas na conta.
 ce:GetAnomalies — Detecção de anomalias de custos.
 ce:GetAnomalyMonitors — Monitores de anomalias configurados.
 ce:GetAnomalySubscriptions — Configurações de notificações de anomalias.
-2.4. Reserved Instances e Savings
+
+### 2.4. Reserved Instances e Savings:
+
 ec2:DescribeReservedInstances, ec2:DescribeReservedInstancesOfferings — Reserved Instances EC2 ativas e oportunidades de compra.
 rds:DescribeReservedDBInstances, rds:DescribeReservedDBInstancesOfferings — Reserved Instances RDS.
 elasticache:DescribeReservedCacheNodes, elasticache:DescribeReservedCacheNodesOfferings — Reserved Instances ElastiCache.
@@ -165,7 +169,7 @@ redshift:DescribeReservedNodes, redshift:DescribeReservedNodeOfferings — Reser
 
 Essas permissões permitem identificar reservas existentes e oportunidades de otimização financeira.
 
-2.5. Computação, Containers e Escalabilidade:
+### 2.5. Computação, Containers e Escalabilidade:
 
 ec2:DescribeInstances, ec2:DescribeInstanceTypes, ec2:DescribeInstanceStatus, ec2:DescribeRegions — Inventário de instâncias EC2.
 ec2:DescribeVolumes, ec2:DescribeSnapshots, ec2:DescribeImages — Volumes EBS, snapshots e imagens.
@@ -175,7 +179,7 @@ lambda:ListFunctions, lambda:GetFunction, lambda:GetFunctionConcurrency, lambda:
 eks:DescribeCluster, eks:ListClusters, eks:ListNodegroups, eks:DescribeNodegroup — Clusters Amazon EKS.
 ecs:DescribeClusters, ecs:DescribeServices, ecs:DescribeTaskDefinition, ecs:ListClusters, ecs:ListServices, ecs:ListTaskDefinitions — Clusters e serviços Amazon ECS.
 
-2.6. Armazenamento e Bancos de Dados:
+### 2.6. Armazenamento e Bancos de Dados:
 
 rds:DescribeDBInstances, rds:DescribeDBClusters, rds:DescribeDBSnapshots, rds:ListTagsForResource — Amazon RDS.
 dynamodb:DescribeTable, dynamodb:ListTables, dynamodb:ListTagsOfResource — Amazon DynamoDB.
@@ -183,14 +187,16 @@ elasticache:DescribeCacheClusters, elasticache:ListTagsForResource — Amazon El
 redshift:DescribeClusters, redshift:DescribeTags — Amazon Redshift.
 elasticfilesystem:DescribeFileSystems, elasticfilesystem:DescribeAccessPoints, elasticfilesystem:ListTagsForResource — Amazon EFS.
 s3:ListAllMyBuckets, s3:GetBucketLocation, s3:GetBucketTagging, s3:GetBucketVersioning, s3:GetBucketRequestPayment, s3:GetLifecycleConfiguration, s3:GetIntelligentTieringConfiguration, s3:GetStorageLensConfiguration, s3:GetStorageLensDashboard, s3:GetMetricsConfiguration — Metadados e configurações dos buckets S3, sem acesso ao conteúdo dos objetos.
-2.7. Monitoramento e Observabilidade
+
+### 2.7. Monitoramento e Observabilidade:
+
 cloudwatch:GetMetricData, cloudwatch:GetMetricStatistics — Métricas históricas de utilização (CPU, memória, rede etc.).
 cloudwatch:ListMetrics — Métricas disponíveis.
 cloudwatch:DescribeAlarms — Alarmes configurados.
 
 Essas permissões são utilizadas para análise de utilização e suporte a recomendações de rightsizing, sem acesso a logs ou conteúdo das aplicações.
 
-2.8. Otimização e Recomendações:
+### 2.8. Otimização e Recomendações:
 
 compute-optimizer:GetEC2InstanceRecommendations, compute-optimizer:GetEC2RecommendationProjectedMetrics — Recomendações para EC2.
 compute-optimizer:GetECSServiceRecommendations — Recomendações para ECS.
@@ -202,7 +208,7 @@ compute-optimizer:GetRecommendationSummaries, compute-optimizer:GetEnrollmentSta
 trustedadvisor:DescribeChecks, trustedadvisor:DescribeCheckResult, trustedadvisor:DescribeCheckSummaries, trustedadvisor:DescribeTrustedAdvisorCheckResult, trustedadvisor:DescribeTrustedAdvisorChecks, trustedadvisor:DescribeTrustedAdvisorCheckSummaries — Recomendações de desempenho, disponibilidade e economia.
 support:DescribeTrustedAdvisorCheckResult, support:DescribeTrustedAdvisorChecks, support:DescribeTrustedAdvisorCheckSummaries — Acesso às verificações do Trusted Advisor via API do AWS Support.
 
-2.9. Organizations:
+### 2.9. Organizations:
 
 Permite visibilidade da estrutura da AWS Organization para consolidação de relatórios em ambientes multi-account. Não concede permissões de alteração.
 
@@ -210,7 +216,7 @@ organizations:DescribeOrganization, organizations:DescribeAccount, organizations
 organizations:ListAccounts, organizations:ListAccountsForParent, organizations:ListChildren, organizations:ListOrganizationalUnitsForParent, organizations:ListParents, organizations:ListPolicies, organizations:ListRoots, organizations:ListTagsForResource — Listagem de contas, OUs e políticas.
 organizations:ListAWSServiceAccessForOrganization — Serviços com Trusted Access habilitado.
 
-2.10. Tags e Governança:
+### 2.10. Tags e Governança:
 
 tag:GetResources, tag:GetTagKeys, tag:GetTagValues — Inventário de recursos e tags utilizadas para alocação de custos.
 config:DescribeConfigRules, config:DescribeConfigurationRecorders, config:GetComplianceDetailsByResource — Visibilidade de conformidade via AWS Config.
