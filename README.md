@@ -194,15 +194,15 @@ Essas permissões são utilizadas para análise de utilização e suporte a reco
 
 Permite visibilidade da estrutura da AWS Organization para consolidação de relatórios em ambientes multi-account. Não concede permissões de alteração.
 
-organizations:DescribeOrganization, organizations:DescribeAccount, organizations:DescribeOrganizationalUnit, organizations:DescribePolicy — Estrutura e detalhes da organização.
-organizations:ListAccounts, organizations:ListAccountsForParent, organizations:ListChildren, organizations:ListOrganizationalUnitsForParent, organizations:ListParents, organizations:ListPolicies, organizations:ListRoots, organizations:ListTagsForResource — Listagem de contas, OUs e políticas.
-organizations:ListAWSServiceAccessForOrganization — Serviços com Trusted Access habilitado.
+- organizations:DescribeOrganization, organizations:DescribeAccount, organizations:DescribeOrganizationalUnit, organizations:DescribePolicy — Estrutura e detalhes da organização.
+- organizations:ListAccounts, organizations:ListAccountsForParent, organizations:ListChildren, organizations:ListOrganizationalUnitsForParent, organizations:ListParents, organizations:ListPolicies, organizations:ListRoots, organizations:ListTagsForResource — Listagem de contas, OUs e políticas.
+- organizations:ListAWSServiceAccessForOrganization — Serviços com Trusted Access habilitado.
 
 ### 2.10. Tags e Governança:
 
-tag:GetResources, tag:GetTagKeys, tag:GetTagValues — Inventário de recursos e tags utilizadas para alocação de custos.
-config:DescribeConfigRules, config:DescribeConfigurationRecorders, config:GetComplianceDetailsByResource — Visibilidade de conformidade via AWS Config.
-servicequotas:GetServiceQuota, servicequotas:ListServiceQuotas, servicequotas:ListServices — Limites e cotas dos serviços AWS.
+- tag:GetResources, tag:GetTagKeys, tag:GetTagValues — Inventário de recursos e tags utilizadas para alocação de custos.
+- config:DescribeConfigRules, config:DescribeConfigurationRecorders, config:GetComplianceDetailsByResource — Visibilidade de conformidade via AWS Config.
+- servicequotas:GetServiceQuota, servicequotas:ListServiceQuotas, servicequotas:ListServices — Limites e cotas dos serviços AWS.
 
 ## 3 - Como usar:
 
